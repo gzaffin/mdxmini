@@ -11,7 +11,7 @@ LFLAGS =
 
 ifdef DEBUG
 CFLAGS = -g -O0
-OBJDIR = obj_dbg
+OBJDIR = obj
 else
 CFLAGS = -O3
 OBJDIR = obj

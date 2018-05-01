@@ -2,6 +2,10 @@
 # Makefile
 #
 
+ifeq ($(DEBUG),1)
+MODE = _debug
+endif
+
 ifeq ($(OS),Windows_NT)
 W32 = 1
 export W32
@@ -9,22 +13,16 @@ endif
 
 ifeq ($(W32),1)
 
-include mak/w32.mak
+#include mak/w32.mak
 EXE_SFX = .exe
 
-else
+endif
 
 include mak/general.mak
 
-endif
-
-ifeq ($(DEBUG),1)
-MODE = _debug
-endif
-
 TARGET = mdxplay$(MODE)$(EXE_SFX)
 
-CFLAGS += -Isrc
+CFLAGS += -idiraftersrc
 
 LIBS += $(SDL_LIBS)
 SLIBS += $(SDL_SLIBS)
@@ -42,7 +40,11 @@ FILES += nlg.c nlg.h
 FILES_ORG = COPYING AUTHORS
 LIB = $(OBJDIR)/lib$(TITLE).a
 
-LIBS += $(LIB) -lm
+ifeq ($(W32),1)
+	LIBS += $(LIB)
+else
+	LIBS += $(LIB) -lm
+endif
 
 ZIPSRC = $(TITLE)`date +"%y%m%d"`.zip
 TOUCH = touch -t `date +"%m%d0000"`
@@ -62,7 +64,7 @@ NLGTEST = nlgtest
 #
 #
 
-all : $(OBJDIR) $(MKLIB) $(TARGET)
+all : $(OBJDIR) $(LIB) $(TARGET)
 
 $(OBJDIR):
 	mkdir $(OBJDIR)
@@ -73,7 +75,7 @@ $(TARGET) : $(OBJS) $(LIB)
 $(LIB): $(MKLIB)
 
 $(MKLIB):
-	make -f Makefile.lib
+	make -f mak/lib.mak
 
 $(OBJDIR)/%.o : %.c
 	$(CC) -o $@ $< -c $(CFLAGS)

@@ -21,17 +21,17 @@ LFLAGS =
 
 ifdef DEBUG
 CFLAGS = -g -O0
-OBJDIR = obj_w32_dbg
+OBJDIR = obj
 else
-CFLAGS = -g -O3
-OBJDIR = obj_w32
+CFLAGS = -O3
+OBJDIR = obj
 endif
 
 #
 # SDL stuff
 #
 
-SDL_CONFIG = sdl-config$(CFG_SFX)
+SDL_CONFIG = sdl2-config
 
 SDL_LIBS := -mconsole 
 SDL_LIBS += `$(SDL_CONFIG) --libs | sed -e "s|-mwindows||g" | \

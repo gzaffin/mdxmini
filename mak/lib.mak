@@ -1,3 +1,5 @@
+include mak/general.mak
+
 LIB = $(OBJDIR)/libmdxmini.a
 
 OBJFILES =  mdxmini.o mdx2151.o mdxmml_ym2151.o 
@@ -9,7 +11,7 @@ SRCDIR = src
 
 OBJS = $(addprefix $(OBJDIR)/,$(OBJFILES))
 
-all : $(OBJDIR) $(LIB)
+all : $(OBJDIR) $(OBJS) $(LIB)
 
 $(OBJDIR) :
 	mkdir $(OBJDIR)
