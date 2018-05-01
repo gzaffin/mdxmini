@@ -2,7 +2,11 @@
 #include <string.h>
 #include <getopt.h>
 #include <signal.h>
+#ifdef _MSC_VER
+#include <SDL2/SDL.h>
+#else
 #include <SDL.h>
+#endif
 
 
 #ifdef USE_ICONV

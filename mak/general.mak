@@ -13,7 +13,7 @@ ifdef DEBUG
 CFLAGS = -g -O0
 OBJDIR = obj_dbg
 else
-CFLAGS = -g -O3
+CFLAGS = -O3
 OBJDIR = obj
 endif
 

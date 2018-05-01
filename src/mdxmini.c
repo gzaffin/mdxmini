@@ -46,7 +46,7 @@ static int self_construct(songdata* songdata);
 static void self_destroy(songdata* songdata);
 
 static void usage( void );
-static void display_version( void );
+//static void display_version( void );
 
 // static char mdx_path[1024];
 
