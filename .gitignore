@@ -1,7 +1,3 @@
 /obj/*
-sdlplay.o
-sdlplay.obj
-libpmdmini.a
-libpmdmini.lib
-pmdmini
-pmdmini.exe
+mdxplay
+mdxplay.exe
