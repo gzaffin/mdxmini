@@ -1,4 +1,10 @@
-cmake_minimum_required(VERSION 3.10)
+if(MSVC)
+	cmake_minimum_required(VERSION 3.10)
+endif()
+
+if(UNIX)
+	cmake_minimum_required(VERSION 3.0)
+endif()
 
 if(MSVC)
   set(CMAKE_C_FLAGS "/Ox /W3 /wd4996")

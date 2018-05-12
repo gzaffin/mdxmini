@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <string.h>
-#include <getopt.h>
 #include <signal.h>
 #ifdef _MSC_VER
 #include <SDL2/SDL.h>
-#else
-#include <SDL.h>
-#endif
+#endif // _MSC_VER
+#ifdef __GNUC__
+#include <SDL2/SDL.h>
+#include <unistd.h>
+#include <stdlib.h>
+#endif // __GNUC__
+#include <getopt.h>
 
 
 #ifdef USE_ICONV
