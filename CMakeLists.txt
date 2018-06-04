@@ -13,7 +13,7 @@ endif()
 if(UNIX)
 	find_package(PkgConfig REQUIRED)
 	pkg_check_modules(SDL2 REQUIRED sdl2)
-        set(CMAKE_C_FLAGS "-O3 -Wall -idirafter ${CMAKE_CURRENT_SOURCE_DIR}/src")
+	set(CMAKE_C_FLAGS "-O3 -Wall -idirafter ${CMAKE_CURRENT_SOURCE_DIR}/src")
 endif()
 
 add_subdirectory(src)

@@ -7,9 +7,10 @@ if(UNIX)
 endif()
 
 if(MSVC)
-  set(CMAKE_C_FLAGS "/Ox /W3 /wd4996")
-else()
-  set(CMAKE_C_FLAGS "-O3 -Wall")
+	set(CMAKE_C_FLAGS "/Ox /W3 /wd4996")
+endif()
+if(UNIX)
+	set(CMAKE_C_FLAGS "-O3 -Wall")
 endif()
 
 add_definitions(/DUSE_NLG)
