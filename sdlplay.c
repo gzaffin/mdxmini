@@ -429,8 +429,10 @@ int audio_main(int argc, char *argv[])
     int len = -1;
 
 #ifdef _WIN32
+#if !defined (__MINGW32__)
     freopen("CON", "wt", stdout);
     freopen("CON", "wt", stderr);
+#endif
 #endif
 
     audio_sdl_init();
