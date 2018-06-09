@@ -7,7 +7,7 @@ $ pacman -S mingw-w64-x86_64-pkg-config mingw-w64-x86_64-SDL2 mingw-w64-x86_64-c
     clone and compile
 
 $ git clone https://github.com/gzaffin/mdxmini.git
-$ cd mdxmin
+$ cd mdxmini
 $ mkdir build
 $ cd build
 $ cmake ..
