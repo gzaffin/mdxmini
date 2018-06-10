@@ -10,5 +10,5 @@ $ git clone https://github.com/gzaffin/mdxmini.git
 $ cd mdxmini
 $ mkdir build
 $ cd build
-$ cmake ..
+$ cmake -G "MSYS Makefiles" ..
 $ make -j 4 mdxplay
