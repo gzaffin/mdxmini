@@ -7,8 +7,7 @@ if(UNIX)
 endif()
 
 if(MSVC)
-	set(CMAKE_C_FLAGS "/Ox /W3 /wd4996")
-	find_package(SDL2 REQUIRED)
+	find_package(SDL2 CONFIG REQUIRED)
 endif()
 if(UNIX OR MINGW)
 	find_package(PkgConfig REQUIRED)
@@ -27,7 +26,7 @@ endif()
 add_executable(mdxplay EXCLUDE_FROM_ALL ${SOURCES})
 
 if(MSVC)
-	target_link_libraries(mdxplay mdxmini SDL2)
+	target_link_libraries(mdxplay PRIVATE mdxmini SDL2::SDL2 SDL2::SDL2main)
 endif()
 
 if(UNIX OR MINGW)
