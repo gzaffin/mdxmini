@@ -132,64 +132,72 @@ int mdx_open( t_mdxmini *data, char *filename , char *pcmdir )
   }
     /* load mdx file */
 
-    data->mdx = mdx_open_mdx( filename );
-    if ( !data->mdx ) 
-		return -1;
-		
-	mdx = data->mdx;
-	
-	if ( pcmdir )
-		strcpy(mdx->pdx_dir , pcmdir );
-	
+  data->mdx = mdx_open_mdx( filename );
+  if ( !data->mdx )
+  {
+    return -1;
+  }
+  mdx = data->mdx;
 
-    mdx->is_use_pcm8         = no_pdx      == FLAG_TRUE ? FLAG_FALSE:FLAG_TRUE;
-    mdx->is_use_fm           = no_fm       == FLAG_TRUE ? FLAG_FALSE:FLAG_TRUE;
-    mdx->is_use_opl3         = no_opl3     == FLAG_TRUE ? FLAG_FALSE:FLAG_TRUE;
-    mdx->is_use_ym2151       = no_ym2151   == FLAG_TRUE ? FLAG_FALSE:FLAG_TRUE;
-    mdx->is_use_fm_voice     = no_fm_voice == FLAG_TRUE ? FLAG_FALSE:FLAG_TRUE;
-    mdx->fm_wave_form        = fm_waveform;
-    mdx->master_volume       = volume;
-    mdx->fm_volume           = fm_volume  * volume/127;
-    mdx->pcm_volume          = pcm_volume * volume/127;
-    mdx->max_infinite_loops  = max_infinite_loops;
-    mdx->fade_out_speed      = fade_out_speed;
+  if ( pcmdir )
+  {
+    strcpy(mdx->pdx_dir , pcmdir );
+  }
+  else
+  {
+    mdx->pdx_dir[0] = '\0';
+  }
 
-    mdx->is_output_to_stdout = is_output_to_stdout; 
-    mdx->is_use_fragment     = is_use_fragment;
-    mdx->dsp_device          = dsp_device;
-    mdx->dump_voice          = dump_voice;
-    mdx->is_output_titles    = output_titles;
-	mdx->dsp_speed           = dsp_speed;
+  mdx->is_use_pcm8         = no_pdx      == FLAG_TRUE ? FLAG_FALSE:FLAG_TRUE;
+  mdx->is_use_fm           = no_fm       == FLAG_TRUE ? FLAG_FALSE:FLAG_TRUE;
+  mdx->is_use_opl3         = no_opl3     == FLAG_TRUE ? FLAG_FALSE:FLAG_TRUE;
+  mdx->is_use_ym2151       = no_ym2151   == FLAG_TRUE ? FLAG_FALSE:FLAG_TRUE;
+  mdx->is_use_fm_voice     = no_fm_voice == FLAG_TRUE ? FLAG_FALSE:FLAG_TRUE;
+  mdx->fm_wave_form        = fm_waveform;
+  mdx->master_volume       = volume;
+  mdx->fm_volume           = fm_volume  * volume/127;
+  mdx->pcm_volume          = pcm_volume * volume/127;
+  mdx->max_infinite_loops  = max_infinite_loops;
+  mdx->fade_out_speed      = fade_out_speed;
 
-    mdx->is_use_reverb       = is_use_reverb;
-    mdx->reverb_predelay     = reverb_predelay;
-    mdx->reverb_roomsize     = reverb_roomsize;
-    mdx->reverb_damp         = reverb_damp;
-    mdx->reverb_width        = reverb_width;
-    mdx->reverb_dry          = reverb_dry;
-    mdx->reverb_wet          = reverb_wet;
+  mdx->is_output_to_stdout = is_output_to_stdout; 
+  mdx->is_use_fragment     = is_use_fragment;
+  mdx->dsp_device          = dsp_device;
+  mdx->dump_voice          = dump_voice;
+  mdx->is_output_titles    = output_titles;
+  mdx->dsp_speed           = dsp_speed;
 
-    mdx->is_output_to_stdout_in_wav = is_output_to_stdout_in_wav;
-    
-    ym2151_set_logging(1, data->songdata);
+  mdx->is_use_reverb       = is_use_reverb;
+  mdx->reverb_predelay     = reverb_predelay;
+  mdx->reverb_roomsize     = reverb_roomsize;
+  mdx->reverb_damp         = reverb_damp;
+  mdx->reverb_width        = reverb_width;
+  mdx->reverb_dry          = reverb_dry;
+  mdx->reverb_wet          = reverb_wet;
 
-    /* voice data load */
+  mdx->is_output_to_stdout_in_wav = is_output_to_stdout_in_wav;
 
-    if ( mdx_get_voice_parameter( mdx ) != 0 )
-		return -1;
-	
-    /* load pdx data */
-    pdx = data->pdx = _get_pdx( mdx, filename );
+  ym2151_set_logging(1, data->songdata);
 
-	data->self = mdx_parse_mml_ym2151_async_initialize(mdx, pdx, data->songdata);
+  /* voice data load */
+  if ( mdx_get_voice_parameter( mdx ) != 0 )
+  {
+    return -1;
+  }
 
-	if (!data->self)
-			return -1;
-			
-	data->samples = 0;
-	data->channels = pcm8_get_output_channels(data->songdata);
+  /* load pdx data */
+  pdx = data->pdx = _get_pdx( mdx, filename );
 
-	return 0;
+  data->self = mdx_parse_mml_ym2151_async_initialize(mdx, pdx, data->songdata);
+
+  if (!data->self)
+  {
+    return -1;
+  }
+  data->samples = 0;
+  data->channels = pcm8_get_output_channels(data->songdata);
+
+  return 0;
 }
 
 void mdx_set_dir ( t_mdxmini *data , char  * dir )
@@ -394,8 +402,7 @@ int  mdx_get_buffer_size ( t_mdxmini *data )
 
 /* pdx loading */
 
-static unsigned char*
-_load_pdx_data(char* name, long* out_length) 
+static unsigned char* _load_pdx_data(char* name, long* out_length) 
 {
   int len;
   FILE *fp;
@@ -434,8 +441,7 @@ error_end:
   return NULL;
 }
 
-static PDX_DATA*
-_open_pdx(char* name)
+static PDX_DATA* _open_pdx(char* name)
 {
   unsigned char* buf = NULL;
   long length = 0;
@@ -450,58 +456,77 @@ _open_pdx(char* name)
   return pdx;
 }
 
-static PDX_DATA*
-_get_pdx(MDX_DATA* mdx, char* mdxpath)
+static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 {
   char *a = NULL;
   char buf[PATH_BUF_SIZE];
   PDX_DATA* pdx = NULL;
 
   mdx->pdx_enable = FLAG_FALSE;
-  if ( mdx->haspdx == FLAG_FALSE ) goto no_pdx_file;
+  if ( mdx->haspdx == FLAG_FALSE )
+  {
+    goto no_pdx_file;
+  }
 
-   
   /* mdx file path directory */
-  
+
   memset(buf, 0, PATH_BUF_SIZE);
   strncpy( buf, mdxpath, PATH_BUF_SIZE-1 );
-  if ( (a=strrchr( buf, '/' )) != NULL ) 
+#ifdef _MSC_VER
+  if ( (a=strrchr( buf, '\\' )) != NULL )
+#else
+  if ( (a=strrchr( buf, '/' )) != NULL )
+#endif
   {
     *(a+1)='\0';
   }
   else
-    buf[0] = 0;
-  
-  strcat( buf, mdx->pdx_name );
-  if ( (pdx=_open_pdx( buf )) == NULL ) 
   {
+    buf[0] = 0;
+  }
+
+  strcat( buf, mdx->pdx_name );
+  if ( (pdx=_open_pdx( buf )) == NULL )
+  {
+    buf[0] = 0;
     // specified pdx directory
-	strcpy( buf, mdx->pdx_dir );
-	int len = (int)strlen( buf );
-	
-	if (len > 0 && buf [ len - 1 ] != '/' )
-			strcat( buf, "/" );
-	
-	strcat( buf, mdx->pdx_name );
-	if ((pdx=_open_pdx( buf )) != NULL )
-		goto get_pdx_file;
+    strcpy( buf, mdx->pdx_dir );
+    int len = (int)strlen( buf );
+
+#ifdef _MSC_VER
+    if (len > 0 && buf [ len - 1 ] != '\\' )
+    {
+      strcat( buf, "\\" );
+    }
+#else
+    if (len > 0 && buf [ len - 1 ] != '/' )
+    {
+      strcat( buf, "/" );
+    }
+#endif
+    strcat( buf, mdx->pdx_name );
+    if ( (pdx=_open_pdx( buf )) != NULL )
+    {
+      goto get_pdx_file;
+    }
   }
   else
+  {
     goto get_pdx_file;
-  
+  }
 
-no_pdx_file:
-  goto unget_pdx_file;
-    
-unget_pdx_file:
-// tempo could be changed in a pcm track
-  mdx->haspdx = FLAG_FALSE;
-  mdx->pdx_enable = FLAG_TRUE;
-  return NULL;
+  no_pdx_file:
+    goto unget_pdx_file;
 
-get_pdx_file:
-  mdx->pdx_enable = FLAG_TRUE;
-  return pdx;
+  unget_pdx_file:
+    // tempo could be changed in a pcm track
+    mdx->haspdx = FLAG_FALSE;
+    mdx->pdx_enable = FLAG_TRUE;
+    return NULL;
+
+  get_pdx_file:
+    mdx->pdx_enable = FLAG_TRUE;
+    return pdx;
 }
 
 void*
