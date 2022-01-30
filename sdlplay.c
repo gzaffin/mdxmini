@@ -2,10 +2,10 @@
 #include <string.h>
 #include <signal.h>
 #ifdef _MSC_VER
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #endif // _MSC_VER
 #ifdef __GNUC__
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <unistd.h>
 #include <stdlib.h>
 #endif // __GNUC__
@@ -52,6 +52,27 @@ static struct pcm_struct
 #include "wavwrite.h"
 #include "fade.h"
 
+/*
+// prototypes
+*/
+static void audio_callback(void *param, Uint8 *data, int len);
+static int audio_sdl_init(void);
+static int audio_init(int freq);
+static void audio_free(void);
+static void audio_sig_handle(int sig);
+static void audio_info(t_mdxmini *data, int sec, int len);
+static int audio_poll_event(void);
+static void audio_disp_title(t_mdxmini *data);
+//static int split_dir(const char *file , char *dir);
+static void audio_loop(t_mdxmini *data, int freq, int len);
+static int audio_loop_file(t_mdxmini *data, const char *file, int freq , int len);
+static void usage(void);
+int audio_main(int argc, char *argv[]);
+
+/*
+// audio_callback
+*/
+
 static void audio_callback(void *param, Uint8 *data, int len)
 {
     int i;
@@ -74,7 +95,11 @@ static void audio_callback(void *param, Uint8 *data, int len)
     }
 }
 
-static int audio_sdl_init()
+/*
+// audio_sdl_init
+*/
+
+static int audio_sdl_init(void)
 {
 
     if (SDL_Init(SDL_INIT_AUDIO))
@@ -85,6 +110,10 @@ static int audio_sdl_init()
 
     return 0;
 }
+
+/*
+// audio_init
+*/
 
 static int audio_init(int freq)
 {
@@ -109,17 +138,28 @@ static int audio_init(int freq)
     return 0;
 }
 
+/*
+// audio_free
+*/
+
 static void audio_free(void)
 {
     SDL_CloseAudio();
     SDL_Quit();
 }
 
+/*
+// audio_sig_handle
+*/
 
 static void audio_sig_handle(int sig)
 {
     pcm.stop = 1;
 }
+
+/*
+// audio_info
+*/
 
 static void audio_info(t_mdxmini *data, int sec, int len)
 {
@@ -144,7 +184,11 @@ static void audio_info(t_mdxmini *data, int sec, int len)
     fflush(stdout);
 }
 
-static int audio_poll_event( void )
+/*
+// audio_poll_event
+*/
+
+static int audio_poll_event(void)
 {
     SDL_Event evt;
     int resVal = 0;
@@ -161,6 +205,10 @@ static int audio_poll_event( void )
 
     return resVal;
 }
+
+/*
+// audio_disp_title
+*/
 
 static void audio_disp_title(t_mdxmini *data)
 {
@@ -203,6 +251,35 @@ static void audio_disp_title(t_mdxmini *data)
     }
 
 }
+
+/*
+// path splitter
+*/
+
+//static int split_dir(const char *file , char *dir)
+//{
+//	char *p;
+//	int len = 0;
+
+#ifdef _MSC_VER
+//	p = strrchr ((char*)file, '\\');
+#else
+//	p = strrchr ((char*)file, '/');
+#endif
+
+//	if ( p )
+//	{
+//		len = (int)( p - file );
+//		strncpy ( dir , file , len );
+//	}
+//	dir[ len ] = 0;
+
+//	return len;
+//}
+
+/*
+// audio_loop
+*/
 
 static void audio_loop(t_mdxmini *data, int freq, int len)
 {
@@ -382,7 +459,11 @@ static int audio_loop_file(t_mdxmini *data, const char *file, int freq , int len
     }
 }
 
-void usage(void)
+/*
+// usage
+*/
+
+static void usage(void)
 {
     printf(
            "Usage mdxplay [options ...] <file> [files ...]\n"
@@ -408,7 +489,15 @@ void usage(void)
 #define NLG_NORMAL 1
 #define NLG_SAMEPATH 2
 
-#define _PATH_SEP "/"
+#ifdef _MSC_VER
+    #define _PATH_SEP ";"
+#else
+    #define _PATH_SEP ":"
+#endif
+
+/*
+// audio_main
+*/
 
 int audio_main(int argc, char *argv[])
 {
@@ -507,14 +596,27 @@ int audio_main(int argc, char *argv[])
     {
         pcmpath_mem[0] = 0;
 
+#ifdef _MSC_VER
+        char *home = getenv("USERPROFILE");
+#else
         char *home = getenv("HOME");
+#endif
         if (home)
         {
             pcmpath = pcmpath_mem;
             strcpy(pcmpath, home);
+#ifdef _MSC_VER
+            strcat(pcmpath,"\\");
+#else
+            strcat(pcmpath,"/");
+#endif
             strcat(pcmpath,_PATH_SEP);
             strcat(pcmpath, ".mdxplay");
-            strcat(pcmpath,_PATH_SEP);
+#ifdef _MSC_VER
+            strcat(pcmpath,"\\");
+#else
+            strcat(pcmpath,"/");
+#endif
         }
     }
 
@@ -583,6 +685,10 @@ int audio_main(int argc, char *argv[])
 #undef main
 #endif
 
+/*
+// main
+*/
+
 int main(int argc, char *argv[])
 {
     int ret = audio_main(argc, argv);
@@ -593,4 +699,3 @@ int main(int argc, char *argv[])
 
     return ret;
 }
-
