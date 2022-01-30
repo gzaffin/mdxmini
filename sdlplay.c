@@ -65,7 +65,7 @@ static int audio_poll_event(void);
 static void audio_disp_title(t_mdxmini *data);
 //static int split_dir(const char *file , char *dir);
 static void audio_loop(t_mdxmini *data, int freq, int len);
-static int audio_loop_file(t_mdxmini *data, const char *file, int freq , int len);
+static void audio_loop_file(t_mdxmini *data, const char *file, int freq , int len);
 static void usage(void);
 int audio_main(int argc, char *argv[]);
 
@@ -370,7 +370,7 @@ static void audio_loop(t_mdxmini *data, int freq, int len)
     SDL_PauseAudio(1);
 }
 
-static int audio_loop_file(t_mdxmini *data, const char *file, int freq , int len)
+static void audio_loop_file(t_mdxmini *data, const char *file, int freq , int len)
 {
     FILE *fp = NULL;
 
