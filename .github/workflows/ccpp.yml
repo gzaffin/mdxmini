@@ -54,11 +54,13 @@ jobs:
     - name: Build [Linux]
       if: matrix.os == 'ubuntu-latest'
       run: |
-        make -C build mdxplay
+        cd build
+        cmake --build . --config Release --target mdxplay
     - name: Build [Darwin]
       if: matrix.os == 'macos-latest'
       run: |
-        make -C build mdxplay
+        cd build
+        cmake --build . --config Release --target mdxplay
     - name: Add msbuild to PATH [Windows]
       if: matrix.os == 'windows-latest'
       uses: microsoft/setup-msbuild@v1.1
@@ -72,18 +74,18 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       run: |
         cd build
-        echo "Checking if mdxplay works: ./mdxplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav"
-        ./mdxplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav
+        echo "Checking if mdxplay works: ./mdxplay"
+        ./mdxplay
     - name: Check [Darwin]
       if: matrix.os == 'macos-latest'
       run: |
         cd build
-        echo "Checking if mdxplay works: ./mdxplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav"
-        ./mdxplay ../PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav
+        echo "Checking if mdxplay works: ./mdxplay"
+        ./mdxplay
     - name: Check  [Windows]
       if: matrix.os == 'windows-latest'
       run: |
         cd build
-        echo "Checking if mdxplay works: Release\mdxplay.exe ..\PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav"
-        Release\mdxplay.exe ..\PC-98_Hartmann_s_Youkai_GIrl.M PC-98_Hartmann_s_Youkai_GIrl.wav
+        echo "Checking if mdxplay works: Release\mdxplay.exe"
+        Release\mdxplay.exe
 
