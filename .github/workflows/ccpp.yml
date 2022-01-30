@@ -75,17 +75,17 @@ jobs:
       run: |
         cd build
         echo "Checking if mdxplay works: ./mdxplay"
-        ./mdxplay
+        ./mdxplay ../KMSM037.mdx
     - name: Check [Darwin]
       if: matrix.os == 'macos-latest'
       run: |
         cd build
         echo "Checking if mdxplay works: ./mdxplay"
-        ./mdxplay
+        ./mdxplay ../KMSM037.mdx
     - name: Check  [Windows]
       if: matrix.os == 'windows-latest'
       run: |
         cd build
         echo "Checking if mdxplay works: Release\mdxplay.exe"
-        Release\mdxplay.exe
+        Release\mdxplay.exe ..\KMSM037.mdx
 
