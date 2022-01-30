@@ -9,7 +9,7 @@ Music Driver X (MDXDRV) is a music driver developed by milk, K.MAEKAWA, Yatsube 
 
 Call `mdxplay` with no arguments for a quick list of examples about how play a .MDX module.
 
-Folder `${HOME}/.pmdplay/` on Linux o.s. or `%USERPROFILE%\.pmdplay\` on Windows o.s. can be used to have .PDX files in a common folder.
+Folder `${HOME}/.mdxplay/` on Linux o.s. or `%USERPROFILE%\.mdxplay\` on Windows o.s. can be used to have .PDX files in a common folder.
 
 # How to build
 
