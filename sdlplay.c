@@ -22,7 +22,7 @@
 
 NLGCTX *nlgctx;
 
-#define MDXMINI_VERSION "2014-06-01"
+#define MDXMINI_VERSION "2022-01-30"
 
 int g_viewnote = 0;
 int g_verbose = 0;
@@ -64,8 +64,8 @@ static void audio_info(t_mdxmini *data, int sec, int len);
 static int audio_poll_event(void);
 static void audio_disp_title(t_mdxmini *data);
 //static int split_dir(const char *file , char *dir);
-static void audio_loop(t_mdxmini *data, int freq, int len);
-static void audio_loop_file(t_mdxmini *data, const char *file, int freq , int len);
+static void audio_loop(t_mdxmini *data, int freq, int len, int nloops);
+static void audio_loop_file(t_mdxmini *data, const char *file, int freq , int len, int nloops);
 static void usage(void);
 int audio_main(int argc, char *argv[]);
 
@@ -281,19 +281,45 @@ static void audio_disp_title(t_mdxmini *data)
 // audio_loop
 */
 
-static void audio_loop(t_mdxmini *data, int freq, int len)
+static void audio_loop(t_mdxmini *data, int freq, int len, int nloops)
 {
 
     int total;
     int sec;
     int sec_sample;
+    int loop_sec = mdx_get_length(data);
 
     if (len < 0)
     {
-        len = mdx_get_length(data);
+        if (nloops < 0)
+        {
+            len = loop_sec;
+        }
+        else
+        {
+            len = loop_sec * (nloops + 1);
+        }
     }
+    else
+    {
+        if (nloops < 0)
+        {
+            if (loop_sec > len)
+            {
+                len = loop_sec;
+            }
+        }
+        else
+        {
+            if ((loop_sec * (nloops + 1)) > len)
+            {
+                len = loop_sec * (nloops + 1);
+            }
+        }
+    }
+    len += 5; // added fade-out time
 
-    mdx_set_max_loop(data, 0);
+    mdx_set_max_loop(data, len);
 
     fade_init();
 
@@ -335,7 +361,7 @@ static void audio_loop(t_mdxmini *data, int freq, int len)
                 sec_sample -= freq;
                 sec++;
 
-                if (sec >= (len - 3))
+                if (sec >= (len - 5)) // 5 is default fade-out time
                 {
                     if (!is_fade_run())
                     {
@@ -370,12 +396,13 @@ static void audio_loop(t_mdxmini *data, int freq, int len)
     SDL_PauseAudio(1);
 }
 
-static void audio_loop_file(t_mdxmini *data, const char *file, int freq , int len)
+static void audio_loop_file(t_mdxmini *data, const char *file, int freq, int len, int nloops)
 {
     FILE *fp = NULL;
 
     int sec;
 //    int last_sec;
+    int loop_sec = mdx_get_length(data);
 
     int frames;
     int total_frames;
@@ -388,8 +415,35 @@ static void audio_loop_file(t_mdxmini *data, const char *file, int freq , int le
     // get length
     if (len < 0)
     {
-        len = mdx_get_length(data);
+        if (nloops < 0)
+        {
+            len = loop_sec;
+        }
+        else
+        {
+            len = loop_sec * (nloops + 1);
+        }
     }
+    else
+    {
+        if (nloops < 0)
+        {
+            if (loop_sec > len)
+            {
+                len = loop_sec;
+            }
+        }
+        else
+        {
+            if ((loop_sec * (nloops + 1)) > len)
+            {
+                len = loop_sec * (nloops + 1);
+            }
+        }
+    }
+    len += 5; // added fade-out time
+
+    mdx_set_max_loop(data, len);
 
     fade_init();
 
@@ -438,7 +492,7 @@ static void audio_loop_file(t_mdxmini *data, const char *file, int freq , int le
             audio_info(data, sec, len);
 
             // start fader
-            if (sec >= (len - 3))
+            if (sec >= (len - 5)) // 5 is default fade-out time
             {
                 if (!is_fade_run())
                 {
@@ -469,18 +523,15 @@ static void usage(void)
            "Usage mdxplay [options ...] <file> [files ...]\n"
            "\n"
            " Options ...\n"
+           " -n nloops : Set loop repetition number (default = -1, no repetition) \n"
            " -s rate   : Set playback rate\n"
            " -q dir    : Set PCM path\n"
-           "\n"
            " -o file   : Generate an Wave file(PCM)\n"
            " -p        : NULL PCM mode.\n"
-           "\n"
            " -r file   : Record a NLG\n"
            " -b        : Record a NLG without sound\n"
-           "\n"
            " -w        : Set verbose mode\n"
            " -x        : View note mode\n"
-           "\n"
            " -h        : Help (this)\n"
            "\n"
            );
@@ -515,6 +566,7 @@ int audio_main(int argc, char *argv[])
     int rate = 44100;
     int nosound = 0;
     int nlg_log = 0;
+    int nloops = -1;
     int len = -1;
 
 #ifdef _WIN32
@@ -535,10 +587,13 @@ int audio_main(int argc, char *argv[])
         return 1;
     }
 
-    while ((opt = getopt(argc, argv, "q:l:r:s:o:bpwhx")) != -1)
+    while ((opt = getopt(argc, argv, "n:q:l:r:s:o:bpwhx")) != -1)
     {
         switch (opt)
         {
+            case 'n': // length
+                nloops = atoi(optarg);
+                break;
             case 'q': // pcm path
                 pcmpath = optarg;
                 break;
@@ -660,11 +715,11 @@ int audio_main(int argc, char *argv[])
 
         if (nosound || wavfile)
         {
-            audio_loop_file(&mini, wavfile, rate, len);
+            audio_loop_file(&mini, wavfile, rate, len, nloops);
         }
         else
         {
-            audio_loop(&mini, rate, len);
+            audio_loop(&mini, rate, len, nloops);
         }
 
         CloseNLG(nlgctx);
