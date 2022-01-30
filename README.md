@@ -1,10 +1,15 @@
-# mdxmini
+## mdxmini
 Music Driver X (MDXDRV) format player using Simple DirectMedia Layer (SDL) version 2.0.x
 
 This is actually a BouKiCHi project (https://github.com/BouKiCHi), but since I cannot find its repostory anymore, I would like to share here.
 
 Music Driver X (MDXDRV) is a music driver developed by milk, K.MAEKAWA, Yatsube and Missy.M for SHARP X68000 home computers, it utilizes MML (Music Macro Language) to create music files capable of FM synthesis and ADPCM data wave replaying.
 
+# How to use mdxplay player
+
+Call `mdxplay` with no arguments for a quick list of examples about how play a .MDX module.
+
+Folder `${HOME}/.pmdplay/` on Linux o.s. or `%USERPROFILE%\.pmdplay\` on Windows o.s. can be used to have .PDX files in a common folder.
 
 # How to build
 
@@ -13,7 +18,7 @@ The following steps build build `mdxplay.exe` on a MSYS2/MinGW-w64 box, or `mdxp
 ```shell/bash shell
 $ git clone https://github.com/gzaffin/mdxmini.git
 $ cd mdxmini
-$ make
+$ make mdxplay
 ```
 
 The following steps build `mdxplay` on a Ubuntu/Debian/GNU/Linux box, using SDL2 library (pck-config) and cmake.
@@ -23,7 +28,7 @@ $ git clone https://github.com/gzaffin/mdxmini.git
 $ cd mdxmini
 $ mkdir build
 $ cd build
-$ cmake -DCMAKE_BUILD_TYPE=Release ..
+$ cmake -D CMAKE_BUILD_TYPE=Release ..
 $ make mdxplay
 ```
 
@@ -34,19 +39,19 @@ $ git clone https://github.com/gzaffin/mdxmini.git
 $ cd mdxmini
 $ mkdir build
 $ cd build
-$ cmake -G "MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+$ cmake -G "MSYS Makefiles" -D CMAKE_BUILD_TYPE=Release ..
 $ make mdxplay
 ```
 
 If MSYS Makefiles generator set with `-G "MSYS Makefiles"` cannot properly set make-utility,
-then add `-DCMAKE_MAKE_PROGRAM=<[PATH]/make-utility>` PATH of make-utility (see [1])
+then add `-D CMAKE_MAKE_PROGRAM=<[PATH]/make-utility>` PATH of make-utility (see [1])
 
 ```windows command-line interface
 $ git clone https://github.com/gzaffin/mdxmini.git
 $ cd mdxmini
 $ mkdir build
 $ cd build
-$ cmake -G "MSYS Makefiles" -DCMAKE_MAKE_PROGRAM=mingw32-make ..
+$ cmake -G "MSYS Makefiles" -D CMAKE_MAKE_PROGRAM=mingw32-make ..
 $ cmake --build . --config Release --target mdxplay
 ```
 
@@ -66,8 +71,8 @@ C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\C
 C:\>cd pmdmini
 C:\pmdmini>mkdir build
 C:\pmdmini>cd build
-C:\pmdmini\build>cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
-C:\pmdmini\build>ninja
+C:\pmdmini\build>cmake -G Ninja -D CMAKE_BUILD_TYPE=Release -D CMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+C:\pmdmini\build>ninja mdxplay
 ```
 
 For the case that Visual Studio can be used
@@ -77,7 +82,7 @@ C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\C
 C:\>cd pmdmini
 C:\pmdmini>mkdir build
 C:\pmdmini>cd build
-C:\pmdmini\build>cmake -G "Visual Studio 16 2019" -A x64 -T host=x64 -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+C:\pmdmini\build>cmake -G "Visual Studio 16 2019" -A x64 -T host=x64 -D CMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 ```
 
 For building from command line
@@ -103,7 +108,7 @@ C:\>cd pmdmini
 C:\pmdmini>mkdir build
 C:\pmdmini>cd build
 C:\pmdmini\build>cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
-C:\pmdmini\build>ninja
+C:\pmdmini\build>ninja mdxmini
 ```
 
 For the case that Visual Studio can be used
@@ -139,7 +144,5 @@ calling vcvarsall.bat update PATH variable, so "C:\Program Files (x86)\Microsoft
 Reference information pages about how to install and how to use Vcpkg
 
 [GitHub Microsoft vcpkg](https://github.com/Microsoft/vcpkg)
-
 [vcpkg: A C++ package manager for Windows, Linux and MacOS](https://docs.microsoft.com/en-us/cpp/build/vcpkg?view=vs-2019)
-
 [Eric Mittelette's blog](https://devblogs.microsoft.com/cppblog/vcpkg-a-tool-to-acquire-and-build-c-open-source-libraries-on-windows/)

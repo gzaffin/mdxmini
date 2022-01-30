@@ -1,9 +1,15 @@
+if(COMMAND cmake_policy)
+	cmake_policy(SET CMP0003 NEW)
+endif(COMMAND cmake_policy)
+
+project(mdxmini)
+
 if(MSVC OR MINGW)
 	cmake_minimum_required(VERSION 3.10)
 endif()
 
 if(UNIX)
-	cmake_minimum_required(VERSION 3.0)
+	cmake_minimum_required(VERSION 3.0.2)
 endif()
 
 if(MSVC)
@@ -30,7 +36,8 @@ if(MSVC)
 endif()
 
 if(UNIX OR MINGW)
-	target_link_libraries(mdxplay mdxmini ${SDL2_LIBRARIES} m)
+	target_link_libraries(mdxplay PRIVATE mdxmini m ${SDL2_LIBRARIES})
 	target_include_directories(mdxplay PUBLIC ${SDL2_INCLUDE_DIRS})
-	target_compile_options(mdxplay PUBLIC ${SDL2_FLAGS_OTHERS})
+	target_compile_options(mdxplay PUBLIC ${SDL2_FLAGS} ${SDL2_FLAGS_OTHERS})
+	install(TARGETS mdxplay DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
