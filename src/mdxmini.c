@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <ctype.h>
 
 #include "mdxmini.h"
 #include "class.h"
@@ -353,16 +353,16 @@ void mdx_get_title( t_mdxmini *data, char *title )
 	strcpy(title,data->mdx->data_title);
 }
 
-int  mdx_get_length( t_mdxmini *data )
+int mdx_get_length( t_mdxmini *data )
 {
-    ym2151_set_logging(0, data->songdata);
+	ym2151_set_logging(0, data->songdata);
 	int len = mdx_parse_mml_ym2151_async_get_length(data->songdata);
-    ym2151_set_logging(1, data->songdata);
+	ym2151_set_logging(1, data->songdata);
 
-    return len;
+	return len;
 }
 
-int  mdx_get_tracks ( t_mdxmini *data )
+int mdx_get_tracks ( t_mdxmini *data )
 {
 	return data->mdx->tracks;
 }
@@ -370,7 +370,7 @@ int  mdx_get_tracks ( t_mdxmini *data )
 void mdx_get_current_notes ( t_mdxmini *data , int *notes , int len )
 {
 	int i;
-	
+
 	for ( i = 0; i < len; i++ )
 	{
 		notes[i] = data->mdx->track[i].note;
@@ -485,7 +485,23 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
     buf[0] = 0;
   }
 
-  strcat( buf, mdx->pdx_name );
+  a=strrchr( mdx->pdx_name, '.' );
+  if (a != NULL)
+  {
+    if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
+    {
+      strcat( buf, mdx->pdx_name );
+    }
+    else
+    {
+      goto no_pdx_file;
+    }
+  }
+  else
+  {
+    strcat( buf, mdx->pdx_name );
+    strcat( buf, ".PDX" );
+  }
   if ( (pdx=_open_pdx( buf )) == NULL )
   {
     buf[0] = 0;
@@ -504,7 +520,23 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
       strcat( buf, "/" );
     }
 #endif
-    strcat( buf, mdx->pdx_name );
+    a=strrchr( mdx->pdx_name, '.' );
+    if (a != NULL)
+    {
+      if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
+      {
+        strcat( buf, mdx->pdx_name );
+      }
+      else
+      {
+        goto no_pdx_file;
+      }
+    }
+    else
+    {
+      strcat( buf, mdx->pdx_name );
+      strcat( buf, ".PDX" );
+    }
     if ( (pdx=_open_pdx( buf )) != NULL )
     {
       goto get_pdx_file;
