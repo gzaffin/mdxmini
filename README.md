@@ -67,31 +67,31 @@ C:\Users\gzaff>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC
 Then
 
 ```windows command-line interface
-C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/pmdmini.git
-C:\>cd pmdmini
-C:\pmdmini>mkdir build
-C:\pmdmini>cd build
-C:\pmdmini\build>cmake -G Ninja -D CMAKE_BUILD_TYPE=Release -D CMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
-C:\pmdmini\build>ninja mdxplay
+C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/mdxmini.git
+C:\>cd mdxmini
+C:\mdxmini>mkdir build
+C:\mdxmini>cd build
+C:\mdxmini\build>cmake -G Ninja -D CMAKE_BUILD_TYPE=Release -D CMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+C:\mdxmini\build>ninja mdxplay
 ```
 
 For the case that Visual Studio can be used
 
 ```windows command-line interface
-C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/pmdmini.git
-C:\>cd pmdmini
-C:\pmdmini>mkdir build
-C:\pmdmini>cd build
-C:\pmdmini\build>cmake -G "Visual Studio 16 2019" -A x64 -T host=x64 -D CMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/mdxmini.git
+C:\>cd mdxmini
+C:\mdxmini>mkdir build
+C:\mdxmini>cd build
+C:\mdxmini\build>cmake -G "Visual Studio 16 2019" -A x64 -T host=x64 -D CMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 ```
 
 For building from command line
 
 ```windows command-line interface
-C:\pmdmini\build>cmake --build . --config Release --target mdxplay
+C:\mdxmini\build>cmake --build . --config Release --target mdxplay
 ```
 
-Otherwise start Microsoft Visual Studio and debug pmdmini solution.
+Otherwise start Microsoft Visual Studio and debug mdxmini solution.
 
 You can have Your build environment set, on a Windows 7 box, if Your MSVC is Microsoft Visual Studio 2017 Community edition, using Windows 7 taskbar search box writing `x64 Native Tools Command Prompt for VS 2017` and starting matching App.
 Otherwise, if MSVC is installed in default localtion, if Windows SDK is 10.0.17763.0 (please see what is in 'C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.UniversalCRT.Debug' folder) (see [2]) issuing
@@ -103,31 +103,31 @@ C:\Users\gzaff>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC
 Then
 
 ```windows command-line interface
-C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/pmdmini.git
-C:\>cd pmdmini
-C:\pmdmini>mkdir build
-C:\pmdmini>cd build
-C:\pmdmini\build>cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
-C:\pmdmini\build>ninja mdxmini
+C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/mdxmini.git
+C:\>cd mdxmini
+C:\mdxmini>mkdir build
+C:\mdxmini>cd build
+C:\mdxmini\build>cmake -G Ninja -D CMAKE_BUILD_TYPE=Release -D CMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+C:\mdxmini\build>ninja mdxmini
 ```
 
 For the case that Visual Studio can be used
 
 ```windows command-line interface
-C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/pmdmini.git
-C:\>cd pmdmini
-C:\pmdmini>mkdir build
-C:\pmdmini>cd build
-C:\pmdmini\build>cmake -G "Visual Studio 15 2017 Win64" -T host=x64 -DCMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+C:\>"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\CommonExtensions\Microsoft\TeamFoundation\Team Explorer\Git\cmd\git" clone https://github.com/gzaffin/mdxmini.git
+C:\>cd mdxmini
+C:\mdxmini>mkdir build
+C:\mdxmini>cd build
+C:\mdxmini\build>cmake -G "Visual Studio 15 2017 Win64" -T host=x64 -D CMAKE_TOOLCHAIN_FILE=C:/Users/gzaff/Devs/vcpkg/scripts/buildsystems/vcpkg.cmake ..
 ```
 
 For building from command line
 
 ```windows command-line interface
-C:\pmdmini\build>cmake --build . --config Release --target mdxplay
+C:\mdxmini\build>cmake --build . --config Release --target mdxplay
 ```
 
-Otherwise start Microsoft Visual Studio and debug pmdmini solution.
+Otherwise start Microsoft Visual Studio and debug mdxmini solution.
 
 Recap of required MACRO definitions:
 
@@ -143,6 +143,8 @@ calling vcvarsall.bat update PATH variable, so "C:\Program Files (x86)\Microsoft
 # Links
 Reference information pages about how to install and how to use Vcpkg
 
-[GitHub Microsoft vcpkg](https://github.com/Microsoft/vcpkg)
-[vcpkg: A C++ package manager for Windows, Linux and MacOS](https://docs.microsoft.com/en-us/cpp/build/vcpkg?view=vs-2019)
-[Eric Mittelette's blog](https://devblogs.microsoft.com/cppblog/vcpkg-a-tool-to-acquire-and-build-c-open-source-libraries-on-windows/)
+[GitHub Microsoft vcpkg](https://github.com/Microsoft/vcpkg) 
+
+[vcpkg: A C++ package manager for Windows, Linux and MacOS](https://docs.microsoft.com/en-us/cpp/build/vcpkg?view=vs-2019) 
+
+[Eric Mittelette's blog](https://devblogs.microsoft.com/cppblog/vcpkg-a-tool-to-acquire-and-build-c-open-source-libraries-on-windows/) 

@@ -287,39 +287,63 @@ static void audio_loop(t_mdxmini *data, int freq, int len, int nloops)
     int total;
     int sec;
     int sec_sample;
-    int loop_sec = mdx_get_length(data);
+    int loop_sec;
 
+    mdx_set_max_loop(data, 1);
+    sec = mdx_get_length(data);
+    mdx_set_max_loop(data, 2);
+    loop_sec = mdx_get_length(data);
+    loop_sec -= sec;
+    if (loop_sec < 0)
+    {
+        loop_sec = 0;
+    }
+    sec -= loop_sec;
+    if (-1 == nloops)
+    {
+        nloops = 1000;
+    }
+    if (nloops > 1)
+    {
+        mdx_set_max_loop(data, nloops - 1);
+    }
+    else
+    {
+        mdx_set_max_loop(data, 1);
+    }
+
+    // playtime
     if (len < 0)
     {
-        if (nloops < 0)
+        len = sec + (nloops * loop_sec);
+    }
+    else
+    {
+        int loop_sec_prime = (sec + (nloops * loop_sec));
+        if (loop_sec_prime < len)
         {
-            len = loop_sec;
+            nloops = len / loop_sec;
+            mdx_set_max_loop(data, nloops);
+        }
+    }
+    printf("Play time : %02d:%02d s", len / 60, len % 60);
+    len += 5; // added fade-out time
+    if (loop_sec > 0)
+    {
+        if (nloops > 0)
+        {
+            printf("  loop time : %02d:%02d s  %02d loops\n", loop_sec / 60, loop_sec % 60, nloops);
         }
         else
         {
-            len = loop_sec * (nloops + 1);
+            printf("  loop time : %02d:%02d s\n", loop_sec / 60, loop_sec % 60);
         }
     }
     else
     {
-        if (nloops < 0)
-        {
-            if (loop_sec > len)
-            {
-                len = loop_sec;
-            }
-        }
-        else
-        {
-            if ((loop_sec * (nloops + 1)) > len)
-            {
-                len = loop_sec * (nloops + 1);
-            }
-        }
+        printf("\n");
     }
-    len += 5; // added fade-out time
-
-    mdx_set_max_loop(data, len);
+    fflush(stdout);
 
     fade_init();
 
@@ -402,7 +426,30 @@ static void audio_loop_file(t_mdxmini *data, const char *file, int freq, int len
 
     int sec;
 //    int last_sec;
-    int loop_sec = mdx_get_length(data);
+    int loop_sec;
+
+    mdx_set_max_loop(data, 1);
+    sec = mdx_get_length(data);
+    mdx_set_max_loop(data, 2);
+    loop_sec = mdx_get_length(data);
+    loop_sec -= sec;
+    if (loop_sec < 0)
+    {
+        loop_sec = 0;
+    }
+    sec -= loop_sec;
+    if (-1 == nloops)
+    {
+        nloops = 1000;
+    }
+    if (nloops > 1)
+    {
+        mdx_set_max_loop(data, nloops - 1);
+    }
+    else
+    {
+        mdx_set_max_loop(data, 1);
+    }
 
     int frames;
     int total_frames;
@@ -412,38 +459,38 @@ static void audio_loop_file(t_mdxmini *data, const char *file, int freq, int len
     // put title info
     audio_disp_title(data);
 
-    // get length
+    // playtime
     if (len < 0)
     {
-        if (nloops < 0)
+        len = sec + (nloops * loop_sec);
+    }
+    else
+    {
+        int loop_sec_prime = (sec + (nloops * loop_sec));
+        if (loop_sec_prime < len)
         {
-            len = loop_sec;
+            nloops = len / loop_sec;
+            mdx_set_max_loop(data, nloops);
+        }
+    }
+    printf("Play time : %02d:%02d s", len / 60, len % 60);
+    len += 5; // added fade-out time
+    if (loop_sec > 0)
+    {
+        if (nloops > 0)
+        {
+            printf("  loop time : %02d:%02d s  %02d loops\n", loop_sec / 60, loop_sec % 60, nloops);
         }
         else
         {
-            len = loop_sec * (nloops + 1);
+            printf("  loop time : %02d:%02d s\n", loop_sec / 60, loop_sec % 60);
         }
     }
     else
     {
-        if (nloops < 0)
-        {
-            if (loop_sec > len)
-            {
-                len = loop_sec;
-            }
-        }
-        else
-        {
-            if ((loop_sec * (nloops + 1)) > len)
-            {
-                len = loop_sec * (nloops + 1);
-            }
-        }
+        printf("\n");
     }
-    len += 5; // added fade-out time
-
-    mdx_set_max_loop(data, len);
+    fflush(stdout);
 
     fade_init();
 
@@ -523,7 +570,8 @@ static void usage(void)
            "Usage mdxplay [options ...] <file> [files ...]\n"
            "\n"
            " Options ...\n"
-           " -n nloops : Set loop repetition number (default = -1, no repetition) \n"
+           " -n nloops : Set loop repetition number (preset = 0, forever = -1 (i.e. nloops == 1000)) \n"
+           " -l time   : Set playtime in second\n"
            " -s rate   : Set playback rate\n"
            " -q dir    : Set PCM path\n"
            " -o file   : Generate an Wave file(PCM)\n"
@@ -566,7 +614,7 @@ int audio_main(int argc, char *argv[])
     int rate = 44100;
     int nosound = 0;
     int nlg_log = 0;
-    int nloops = -1;
+    int nloops = 0;
     int len = -1;
 
 #ifdef _WIN32
