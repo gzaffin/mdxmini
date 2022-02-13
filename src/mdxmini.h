@@ -40,6 +40,7 @@ void mdx_make_buffer(t_mdxmini *data, short *buf, int buffer_size);
 int  mdx_calc_sample(t_mdxmini *data, short *buf, int buffer_size);
 int  mdx_calc_log(t_mdxmini *data, short *buf, int buffer_size);
 
+void  mdx_get_pdxfilename( t_mdxmini *data, char *title );
 void  mdx_get_title(t_mdxmini *data, char *title);
 int   mdx_get_length(t_mdxmini *data);
 void  mdx_set_max_loop(t_mdxmini *data, int loop);

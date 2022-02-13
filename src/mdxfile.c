@@ -132,6 +132,7 @@ MDX_DATA *mdx_open_mdx( char *name ) {
     mdx->haspdx=FLAG_TRUE;
     mdx->pdx_name[i++] = buf[ptr++];
     if ( strcasecmp( ".pdx", (char *)(buf+ptr-1) )==0 ) j=1;
+    if ( strcasecmp( ".PDX", (char *)(buf+ptr-1) )==0 ) j=1;
     if ( i>= MDX_MAX_PDX_FILENAME_LENGTH ) i--;
     if ( ptr > mdx->length ) goto error_end;
   }

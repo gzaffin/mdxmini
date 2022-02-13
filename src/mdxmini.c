@@ -346,7 +346,20 @@ int mdx_calc_log(t_mdxmini *data, short *buf, int buffer_size)
 	return next;
 }
 
-
+void mdx_get_pdxfilename( t_mdxmini *data, char *title )
+{
+	if (NULL != title)
+	{
+		if (data->mdx->haspdx)
+		{
+			strcpy(title,data->mdx->pdx_name);
+		}
+		else
+		{
+			title[0] = '\0';
+		}
+	}
+}
 
 void mdx_get_title( t_mdxmini *data, char *title )
 {

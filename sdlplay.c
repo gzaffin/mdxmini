@@ -713,13 +713,13 @@ int audio_main(int argc, char *argv[])
 #else
             strcat(pcmpath,"/");
 #endif
-            strcat(pcmpath,_PATH_SEP);
             strcat(pcmpath, ".mdxplay");
 #ifdef _MSC_VER
             strcat(pcmpath,"\\");
 #else
             strcat(pcmpath,"/");
 #endif
+/*            strcat(pcmpath,_PATH_SEP);*/
         }
     }
 
@@ -755,10 +755,30 @@ int audio_main(int argc, char *argv[])
         // open mdx
         if (mdx_open(&mini, playfile, pcmpath))
         {
+            if (mini.mdx->haspdx)
+            {
+                char pdx_lcl_name[1024];
+                pdx_lcl_name[0] = '\0';
+                mdx_get_pdxfilename( &mini, pdx_lcl_name );
+                if ('\0' != pdx_lcl_name[0])
+                {
+                    printf("PDX File : %s\n", pdx_lcl_name);
+                }
+            }
             printf("File open error: %s\n", playfile);
             CloseNLG(nlgctx);
             nlgctx = NULL;
             return 0;
+        }
+        if (mini.mdx->haspdx)
+        {
+            char pdx_lcl_name[1024];
+            pdx_lcl_name[0] = '\0';
+            mdx_get_pdxfilename( &mini, pdx_lcl_name );
+            if ('\0' != pdx_lcl_name[0])
+            {
+                printf("PDX File : %s\n", pdx_lcl_name);
+            }
         }
 
         if (nosound || wavfile)
