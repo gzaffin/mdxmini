@@ -473,10 +473,15 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 {
   char *a = NULL;
   char buf[PATH_BUF_SIZE];
+  char buf_capital_chars[PATH_BUF_SIZE];
   PDX_DATA* pdx = NULL;
 
   mdx->pdx_enable = FLAG_FALSE;
   if ( mdx->haspdx == FLAG_FALSE )
+  {
+    goto no_pdx_file;
+  }
+  if ( NULL == mdx->pdx_name )
   {
     goto no_pdx_file;
   }
@@ -497,6 +502,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   {
     buf[0] = 0;
   }
+  strcpy( buf_capital_chars, buf );
 
   a=strrchr( mdx->pdx_name, '.' );
   if (a != NULL)
@@ -515,13 +521,41 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
     strcat( buf, mdx->pdx_name );
     strcat( buf, ".PDX" );
   }
-  if ( (pdx=_open_pdx( buf )) == NULL )
+
+  pdx=_open_pdx( buf );
+  if (NULL == pdx)
   {
-    buf[0] = 0;
+    int buf_capital_chars_len, i, lcl_char;
+    i = 0;
+    buf_capital_chars_len = (int)strlen( buf_capital_chars );
+    do
+    {
+      lcl_char = toupper(mdx->pdx_name[i]);
+      buf_capital_chars[buf_capital_chars_len + i] = lcl_char;
+      i++;
+    }
+    while ('\0' != lcl_char);
+
+    pdx=_open_pdx( buf_capital_chars );
+    if ( NULL != pdx )
+    {
+      goto get_pdx_file;
+    }
+  }
+  else
+  {
+    goto get_pdx_file;
+  }
+
+  if (NULL == pdx)
+  {
+    buf[0] = '\0';
+    buf_capital_chars[0] = '\0';
     // specified pdx directory
     strcpy( buf, mdx->pdx_dir );
-    int len = (int)strlen( buf );
+    strcpy( buf_capital_chars, buf );
 
+    int len = (int)strlen( buf );
 #ifdef _MSC_VER
     if (len > 0 && buf [ len - 1 ] != '\\' )
     {
@@ -550,9 +584,29 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
       strcat( buf, mdx->pdx_name );
       strcat( buf, ".PDX" );
     }
-    if ( (pdx=_open_pdx( buf )) != NULL )
+    pdx=_open_pdx( buf );
+    if ( NULL != pdx )
     {
       goto get_pdx_file;
+    }
+    else
+    {
+      int buf_capital_chars_len, i, lcl_char;
+      i = 0;
+      buf_capital_chars_len = (int)strlen( buf_capital_chars );
+      do
+      {
+        lcl_char = toupper(mdx->pdx_name[i]);
+        buf_capital_chars[buf_capital_chars_len + i] = lcl_char;
+        i++;
+      }
+      while ('\0' != lcl_char);
+
+      pdx=_open_pdx( buf_capital_chars );
+      if ( NULL != pdx )
+      {
+        goto get_pdx_file;
+      }
     }
   }
   else

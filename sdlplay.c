@@ -755,16 +755,6 @@ int audio_main(int argc, char *argv[])
         // open mdx
         if (mdx_open(&mini, playfile, pcmpath))
         {
-            if (mini.mdx->haspdx)
-            {
-                char pdx_lcl_name[1024];
-                pdx_lcl_name[0] = '\0';
-                mdx_get_pdxfilename( &mini, pdx_lcl_name );
-                if ('\0' != pdx_lcl_name[0])
-                {
-                    printf("PDX File : %s\n", pdx_lcl_name);
-                }
-            }
             printf("File open error: %s\n", playfile);
             CloseNLG(nlgctx);
             nlgctx = NULL;
@@ -779,6 +769,21 @@ int audio_main(int argc, char *argv[])
             {
                 printf("PDX File : %s\n", pdx_lcl_name);
             }
+        }
+        else
+        {
+          if (NULL == mini.pdx)
+          {
+              char pdx_lcl_name[1024];
+              pdx_lcl_name[0] = '\0';
+              mini.mdx->haspdx = 1; /* forced value trying to print not found PDX */
+              mdx_get_pdxfilename( &mini, pdx_lcl_name );
+              if ('\0' != pdx_lcl_name[0])
+              {
+                  printf("PDX File : %s NOT FOUND\n", pdx_lcl_name);
+              }
+              mini.mdx->haspdx = 0; /* restored value after use */
+          }
         }
 
         if (nosound || wavfile)
