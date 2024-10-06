@@ -219,7 +219,7 @@ mdx_parse_mml_ym2151( MDX_DATA *orig_mdx, PDX_DATA *orig_pdx, songdata *data )
     /* timer count */
 
     self->mdx->total_count++;
-    self->mdx->elapsed_time += 1000*1024*(256 - self->mdx->tempo)/4000;
+    self->mdx->elapsed_time += (1000.0 * 1024 * (256 - self->mdx->tempo)) / (4000.0);
 
 	do_pcm8(NULL,-1, data);
     
@@ -334,7 +334,7 @@ mdx_parse_mml_ym2151_async(songdata *data)
   /* timer count */
 
   self->mdx->total_count++;
-  self->mdx->elapsed_time += 1000*1024*(256 - self->mdx->tempo)/4000;
+  self->mdx->elapsed_time += (1000.0 * 1024 * (256 - self->mdx->tempo)) / (4000.0);
 
   return FLAG_TRUE;
 }
@@ -346,12 +346,13 @@ int mdx_parse_mml_ym2151_async_get_length(songdata *data)
   __GETSELF(data)
   
   next = 1;
+  self->mdx->elapsed_time = 0;
   while(next && self->mdx->elapsed_time < (1200 * 1000000))
   {
-	next = mdx_parse_mml_ym2151_async(data);
+    next = mdx_parse_mml_ym2151_async(data);
   }
   
-  sec = (int)self->mdx->elapsed_time / 1000000;
+  sec = (((double)self->mdx->elapsed_time + 500000.0)/ 1000000.0);
 
   /* stop */
   ym2151_all_note_off(data);

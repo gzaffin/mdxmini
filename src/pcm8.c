@@ -65,7 +65,8 @@ struct _pcm8_instances {
 #define PCM8_MAX_FREQ 5
 
 static const int adpcm_freq_list[] = {
-  3900, 5200, 7800, 10400, 15600
+/*  3900, 5200, 7800, 10400, 15600 */
+  3906, 5208, 7812, 10416, /*16000*/ 15625 /* from portable_mdx x68sound_adpcm.h */
 };
 
 static const unsigned char riff[]={
@@ -253,8 +254,8 @@ int pcm8_close( songdata *data )
   if ( free_all == FLAG_TRUE ) {
     for ( i=1 ; i<=0 ; i-- ) {
       if ( self->ym2151_voice[i]!=NULL ) {
-	free( self->ym2151_voice[i] );
-	self->ym2151_voice[i]=NULL;
+        free( self->ym2151_voice[i] );
+        self->ym2151_voice[i]=NULL;
       }
     }
 
@@ -307,7 +308,7 @@ int pcm8_set_pcm_freq( int ch, int hz, songdata *data ) {
   if ( hz < 0 ) return 1;
   if ( hz >= PCM8_MAX_FREQ ) {
     self->work[ch].adpcm = FLAG_FALSE;
-    self->work[ch].freq = 15600;
+    self->work[ch].freq = /*15600*/ 15625; /* from portable_mdx x68sound_adpcm.h */
   } else {
     self->work[ch].freq = adpcm_freq_list[hz];
     self->work[ch].adpcm = FLAG_TRUE;

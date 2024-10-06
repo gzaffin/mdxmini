@@ -619,8 +619,8 @@ int audio_main(int argc, char *argv[])
 
 #ifdef _WIN32
 #if !defined (__MINGW32__)
-    freopen("CON", "wt", stdout);
-    freopen("CON", "wt", stderr);
+    (void)freopen("CON", "wt", stdout);
+    (void)freopen("CON", "wt", stderr);
 #endif
 #endif
 
