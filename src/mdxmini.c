@@ -260,45 +260,46 @@ int mdx_calc_sample(t_mdxmini *data, short *buf, int buffer_size)
 {
 	int s_pos;
 	int next,frame;
-	
+
 	next = 1;
 	s_pos = 0;
-	
+
 	do
 	{
 		if (!data->samples)
 		{
+			long long int speed_times_frame;
 #ifdef USE_NLG
-            if (data->nlg_tempo != data->mdx->tempo)
-            {
-                data->nlg_tempo = data->mdx->tempo;
+			if (data->nlg_tempo != data->mdx->tempo)
+			{
+				data->nlg_tempo = data->mdx->tempo;
 
-                int tempo_us = (1000 * 1024 * (256 - data->nlg_tempo)) / 4000;
-                WriteNLG_CTC(nlgctx, CMD_CTC0, 4); // 4 * 64 = 256us
-                WriteNLG_CTC(nlgctx, CMD_CTC3, (tempo_us / 256));
-
-            }
-            WriteNLG_IRQ(nlgctx);
+				int tempo_us = (1000 * 1024 * (256 - data->nlg_tempo)) / 4000;
+				WriteNLG_CTC(nlgctx, CMD_CTC0, 4); // 4 * 64 = 256us
+				WriteNLG_CTC(nlgctx, CMD_CTC3, (tempo_us / 256));
+			}
+			WriteNLG_IRQ(nlgctx);
 #endif
 			next = mdx_next_frame(data);
 			frame = mdx_frame_length(data);
-			data->samples = (data->mdx->dsp_speed * frame)/1000000;
+			speed_times_frame = (long long int)data->mdx->dsp_speed * (long long int)frame;
+			speed_times_frame /= 1000000ll;
+			data->samples = speed_times_frame;
 		}
-        
-        int calc_len = data->samples;
-        
+
+		int calc_len = data->samples;
+
 		if (calc_len + s_pos >= buffer_size)
-            calc_len = buffer_size - s_pos;
-        
-        mdx_parse_mml_ym2151_make_samples(
-                buf + (s_pos * data->channels),
-                calc_len,
-                data->songdata);
-			
-        data->samples -= calc_len;
-        s_pos += calc_len;
-		
-	}while(s_pos < buffer_size);
+			calc_len = buffer_size - s_pos;
+
+		mdx_parse_mml_ym2151_make_samples(
+			buf + (s_pos * data->channels),
+			calc_len,
+			data->songdata);
+
+		data->samples -= calc_len;
+		s_pos += calc_len;
+	} while(s_pos < buffer_size);
 
 	return next;
 }
