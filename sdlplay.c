@@ -13,6 +13,10 @@
 
 
 #ifdef USE_ICONV
+#ifdef _MSC_VER
+#include <windows.h>
+#endif // _MSC_VER
+
 #include <iconv.h>
 #endif
 
@@ -213,7 +217,8 @@ static int audio_poll_event(void)
 static void audio_disp_title(t_mdxmini *data)
 {
     char *title;
-    char title_orig[1024];
+
+    char title_orig[1024] = { 0, };
 
     title = title_orig;
 
@@ -221,24 +226,26 @@ static void audio_disp_title(t_mdxmini *data)
 
 #ifdef USE_ICONV
 
-    char title_locale[1024];
+    char title_locale[1024] = { 0, };
 
-    iconv_t icd;
-    icd = iconv_open("UTF-8//IGNORE", "Shift_JIS");
+    iconv_t icd = iconv_open("UTF-8", "SHIFT-JIS");
 
-    if (icd)
+    if (icd != (iconv_t)(-1))
     {
-        title = title_locale;
-
         char *srcstr = title_orig;
         char *deststr = title_locale;
 
-        size_t srclen = sizeof(title_orig);
-        size_t destlen = sizeof(title_locale);
+        size_t srclen = (NULL != srcstr) ? strlen(srcstr) + 1 : 0;
+        size_t destlen = 1024;
+        size_t wrtBytes = 0;
 
-        iconv(icd,\
-              &srcstr, &srclen, \
-              &deststr, &destlen);
+        iconv(icd, NULL, NULL, NULL, NULL); // reset conversion state
+
+        wrtBytes = iconv(icd, &srcstr, &srclen, &deststr, &destlen);
+        if (wrtBytes != (size_t)-1)
+        {
+            title = title_locale;
+        }
 
         iconv_close(icd);
     }
@@ -247,7 +254,20 @@ static void audio_disp_title(t_mdxmini *data)
 
     if (!g_viewnote)
     {
+#ifdef _MSC_VER
+        UINT oldCodePage;
+        oldCodePage = GetConsoleOutputCP();
+        if (!SetConsoleOutputCP(65001)) {
+            printf("error\n");
+        }
+        printf("Title:");
+        fwrite(title, 1, strlen(title) + 1, stdout);
+        printf("\n");
+
+        SetConsoleOutputCP(oldCodePage);
+#else // _MSC_VER
         printf("Title:%s\n", title);
+#endif // _MSC_VER
     }
 
 }

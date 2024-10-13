@@ -14,6 +14,8 @@ endif()
 
 if(MSVC)
 	find_package(SDL2 CONFIG REQUIRED)
+	find_package(Iconv REQUIRED)
+	add_definitions("-D USE_ICONV")
 endif()
 if(UNIX OR MINGW)
 	find_package(PkgConfig REQUIRED)
@@ -35,7 +37,7 @@ endif()
 add_executable(mdxplay EXCLUDE_FROM_ALL ${SOURCES})
 
 if(MSVC)
-	target_link_libraries(mdxplay PRIVATE mdxmini SDL2::SDL2 SDL2::SDL2main)
+	target_link_libraries(mdxplay PRIVATE mdxmini SDL2::SDL2 SDL2::SDL2main Iconv::Iconv)
 endif()
 
 if(UNIX OR MINGW OR APPLE)
