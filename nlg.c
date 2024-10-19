@@ -78,7 +78,7 @@ NLGCTX *OpenNLG(const char *file)
 		return NULL;
 	}
     
-	fread(hdr, 0x60, 1, ctx->file);
+	(void)fread(hdr, 0x60, 1, ctx->file);
 	
 	if (memcmp(hdr, "NLG1", 4) != 0)
 	{

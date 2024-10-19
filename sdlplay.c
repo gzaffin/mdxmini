@@ -26,7 +26,7 @@
 
 NLGCTX *nlgctx;
 
-#define MDXMINI_VERSION "2022-01-30"
+#define MDXMINI_VERSION __DATE__
 
 int g_viewnote = 0;
 int g_verbose = 0;
@@ -66,6 +66,10 @@ static void audio_free(void);
 static void audio_sig_handle(int sig);
 static void audio_info(t_mdxmini *data, int sec, int len);
 static int audio_poll_event(void);
+#ifdef USE_ICONV
+static int conv_with_iconv(char *title_orig, char *title_locale, const char *tocode);
+
+#endif
 static void audio_disp_title(t_mdxmini *data);
 //static int split_dir(const char *file , char *dir);
 static void audio_loop(t_mdxmini *data, int freq, int len, int nloops);
@@ -210,6 +214,46 @@ static int audio_poll_event(void)
     return resVal;
 }
 
+#ifdef USE_ICONV
+/*
+// conv_with_iconv
+*/
+
+static int conv_with_iconv(char *title_orig, char *title_locale, const char *tocode)
+{
+    iconv_t icd = iconv_open("UTF-8", tocode);
+
+    if (icd != (iconv_t)(-1))
+    {
+        char *srcstr = title_orig;
+        char *deststr = title_locale;
+
+        size_t srclen = (NULL != srcstr) ? strlen(srcstr) + 1 : 0;
+        size_t destlen = 1024;
+        size_t wrtBytes = 0;
+
+        (void)iconv(icd, NULL, NULL, NULL, NULL); // reset conversion state
+
+        wrtBytes = iconv(icd, &srcstr, &srclen, &deststr, &destlen);
+        if (wrtBytes == (size_t)-1)
+        {
+            /*printf("error iconv\n");*/
+            return -1;
+        }
+
+        iconv_close(icd);
+    }
+    else
+    {
+        /*printf("error iconv_open\n");*/
+        return -1;
+    }
+
+    return 0;
+}
+
+#endif
+
 /*
 // audio_disp_title
 */
@@ -225,31 +269,20 @@ static void audio_disp_title(t_mdxmini *data)
     mdx_get_title(data, title_orig);
 
 #ifdef USE_ICONV
-
     char title_locale[1024] = { 0, };
 
-    iconv_t icd = iconv_open("UTF-8", "SHIFT-JIS");
-
-    if (icd != (iconv_t)(-1))
+    if (0 == conv_with_iconv(title_orig, title_locale, "SHIFT-JIS"))
     {
-        char *srcstr = title_orig;
-        char *deststr = title_locale;
-
-        size_t srclen = (NULL != srcstr) ? strlen(srcstr) + 1 : 0;
-        size_t destlen = 1024;
-        size_t wrtBytes = 0;
-
-        iconv(icd, NULL, NULL, NULL, NULL); // reset conversion state
-
-        wrtBytes = iconv(icd, &srcstr, &srclen, &deststr, &destlen);
-        if (wrtBytes != (size_t)-1)
-        {
-            title = title_locale;
-        }
-
-        iconv_close(icd);
+        title = title_locale;
     }
-
+    else if (0 == conv_with_iconv(title_orig, title_locale, "CP932"))
+    {
+        title = title_locale;
+    }
+    else
+    {
+        ;
+    }
 #endif
 
     if (!g_viewnote)
@@ -265,11 +298,13 @@ static void audio_disp_title(t_mdxmini *data)
         printf("\n");
 
         SetConsoleOutputCP(oldCodePage);
+
 #else // _MSC_VER
         printf("Title:%s\n", title);
-#endif // _MSC_VER
-    }
 
+#endif // _MSC_VER
+
+    }
 }
 
 /*

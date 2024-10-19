@@ -20,16 +20,25 @@ endif
 # iconv
 # Jj commented libiconv usage
 #ifneq ($(OS),Windows_NT)
-#CFLAGS += -DUSE_ICONV
+CFLAGS += -D USE_ICONV
 #LIBS += -liconv
 #endif
 
 #
-# SDL stuff
+# SDL2 stuff
 #
 
 SDL_CONFIG = sdl2-config
 
-SDL_SLIBS  := `$(SDL_CONFIG) --static-libs`
 SDL_LIBS   := `$(SDL_CONFIG) --libs`
 SDL_CFLAGS := `$(SDL_CONFIG) --cflags`
+
+#
+# iconv stuff
+#
+
+PKG_CONFIG = pkg-config
+
+ICONV_LIBS   := `$(PKG_CONFIG) --libs iconv`
+ICONV_CFLAGS := `$(PKG_CONFIG) --cflags iconv`
+

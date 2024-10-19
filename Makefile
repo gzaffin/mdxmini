@@ -24,9 +24,8 @@ TARGET = mdxplay$(MODE)$(EXE_SFX)
 
 CFLAGS += -idiraftersrc
 
-LIBS += $(SDL_LIBS)
-SLIBS += $(SDL_SLIBS)
-CFLAGS += $(SDL_CFLAGS)
+LIBS += $(SDL_LIBS) $(ICONV_LIBS)
+CFLAGS += $(SDL_CFLAGS) $(ICONV_CFLAGS)
 
 
 #
