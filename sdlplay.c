@@ -67,7 +67,7 @@ static void audio_sig_handle(int sig);
 static void audio_info(t_mdxmini *data, int sec, int len);
 static int audio_poll_event(void);
 #ifdef USE_ICONV
-static int conv_with_iconv(char *title_orig, char *title_locale, const char *tocode);
+static int conv_with_iconv(char *title_orig, char *title_locale, const char *fromcode);
 
 #endif
 static void audio_disp_title(t_mdxmini *data);
@@ -219,9 +219,9 @@ static int audio_poll_event(void)
 // conv_with_iconv
 */
 
-static int conv_with_iconv(char *title_orig, char *title_locale, const char *tocode)
+static int conv_with_iconv(char *title_orig, char *title_locale, const char *fromcode)
 {
-    iconv_t icd = iconv_open("UTF-8", tocode);
+    iconv_t icd = iconv_open("UTF-8", fromcode);
 
     if (icd != (iconv_t)(-1))
     {
