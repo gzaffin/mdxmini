@@ -35,8 +35,18 @@
 #include "nlg.h"
 extern NLGCTX *nlgctx;
 
-#endif
+#endif // USE_NLG
+       
+#ifdef USE_ICONV
+#ifdef _MSC_VER
+#include <windows.h>
+#endif // _MSC_VER
+        
+#include <iconv.h>
+#include "sjis.h"
+#include "utf8.h"
 
+#endif // USE_ICONV 
 
 /* ------------------------------------------------------------------ */
 #define PATH_BUF_SIZE 1024
@@ -49,6 +59,11 @@ static void self_destroy(songdata* songdata);
 //static void display_version( void );
 
 // static char mdx_path[1024];
+
+#ifdef USE_ICONV
+static int conv_with_iconv(char *title_orig, char *title_locale, const char *fromcode);
+
+#endif
 
 /* ------------------------------------------------------------------ */
 // static char *command_name;
@@ -486,6 +501,89 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   {
     goto no_pdx_file;
   }
+  int pdx_name_len = 0;
+  while ('\0' != mdx->pdx_name[pdx_name_len])
+  {
+    pdx_name_len++;
+  }
+  char pdx_iconv_name[1024] = { 0, };
+  
+#ifdef USE_ICONV
+
+            if (0 == conv_with_iconv(mdx->pdx_name, pdx_iconv_name, "SHIFT-JIS"))
+            {
+
+#ifdef DEBUG
+                if ('\0' != pdx_iconv_name[0])
+                {
+#ifdef _MSC_VER
+                    UINT oldCodePage;
+                    oldCodePage = GetConsoleOutputCP();
+                    if (!SetConsoleOutputCP(65001)) {
+                        printf("error\n");
+                    }
+                    printf("PDX File SHIFT-JIS : ");
+                    fwrite(pdx_iconv_name, 1, strlen(pdx_iconv_name) + 1, stdout);
+                    printf("\n");
+
+                    SetConsoleOutputCP(oldCodePage);
+
+#else // _MSC_VER
+                    printf("PDX File SHIFT-JIS : %s\n", pdx_iconv_name);
+
+#endif // _MSC_VER
+                }
+
+#endif // DEBUG
+            }
+            else if (0 == conv_with_iconv(mdx->pdx_name, pdx_iconv_name, "CP932"))
+            {
+
+#ifdef DEBUG
+                if ('\0' != pdx_iconv_name[0])
+                {
+#ifdef _MSC_VER
+                    UINT oldCodePage;
+                    oldCodePage = GetConsoleOutputCP();
+                    if (!SetConsoleOutputCP(65001)) {
+                        printf("error\n");
+                    }
+                    printf("PDX File CP932 : ");
+                    fwrite(pdx_iconv_name, 1, strlen(pdx_iconv_name) + 1, stdout);
+                    printf("\n");
+
+                    SetConsoleOutputCP(oldCodePage);
+
+#else // _MSC_VER
+                    printf("PDX File CP932 : %s\n", pdx_iconv_name);
+
+#endif // _MSC_VER
+                }
+
+#endif // DEBUG
+            }
+            else
+            {
+                if ('\0' != mdx->pdx_name[0])
+                {
+                    sjis_to_utf8(mdx->pdx_name, (pdx_name_len + 1), pdx_iconv_name, 1024);
+
+#ifdef DEBUG
+                    printf("PDX File sjis_to_utf8 : %s\n", pdx_iconv_name);
+
+#endif // DEBUG
+                }
+            }
+
+#else // USE_ICONV
+  sjis_to_utf8(mdx->pdx_name, (pdx_name_len + 1), pdx_iconv_name, 1024);
+
+#ifdef DEBUG
+  printf("PDX File sjis_to_utf8 : %s\n", pdx_iconv_name);
+
+#endif // DEBUG
+
+#endif // USE_ICONV
 
   /* mdx file path directory */
 
@@ -493,9 +591,11 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   strncpy( buf, mdxpath, PATH_BUF_SIZE-1 );
 #ifdef _MSC_VER
   if ( (a=strrchr( buf, '\\' )) != NULL )
-#else
+
+#else // _MSC_VER
   if ( (a=strrchr( buf, '/' )) != NULL )
-#endif
+
+#endif // _MSC_VER
   {
     *(a+1)='\0';
   }
@@ -505,12 +605,12 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   }
   strcpy( buf_capital_chars, buf );
 
-  a=strrchr( mdx->pdx_name, '.' );
+  a=strrchr( pdx_iconv_name/*mdx->pdx_name*/, '.' );
   if (a != NULL)
   {
     if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
     {
-      strcat( buf, mdx->pdx_name );
+      strcat( buf, pdx_iconv_name/*mdx->pdx_name*/ );
     }
     else
     {
@@ -519,11 +619,11 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   }
   else
   {
-    strcat( buf, mdx->pdx_name );
+    strcat( buf, pdx_iconv_name/*mdx->pdx_name*/ );
     strcat( buf, ".PDX" );
   }
-
   pdx=_open_pdx( buf );
+
   if (NULL == pdx)
   {
     int buf_capital_chars_len, i, lcl_char;
@@ -562,18 +662,20 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
     {
       strcat( buf, "\\" );
     }
-#else
+
+#else // _MSC_VER
     if (len > 0 && buf [ len - 1 ] != '/' )
     {
       strcat( buf, "/" );
     }
-#endif
-    a=strrchr( mdx->pdx_name, '.' );
+
+#endif // _MSC_VER
+    a=strrchr( pdx_iconv_name/*mdx->pdx_name*/, '.' );
     if (a != NULL)
     {
       if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
       {
-        strcat( buf, mdx->pdx_name );
+        strcat( buf, pdx_iconv_name/*mdx->pdx_name*/ );
       }
       else
       {
@@ -582,10 +684,11 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
     }
     else
     {
-      strcat( buf, mdx->pdx_name );
+      strcat( buf, pdx_iconv_name/*mdx->pdx_name*/ );
       strcat( buf, ".PDX" );
     }
     pdx=_open_pdx( buf );
+
     if ( NULL != pdx )
     {
       goto get_pdx_file;
@@ -721,3 +824,45 @@ self_destroy(songdata *songdata)
     songdata->mdx2151 = NULL;
   }
 }
+
+
+#ifdef USE_ICONV
+/*
+// conv_with_iconv
+*/          
+
+static int conv_with_iconv(char *title_orig, char *title_locale, const char *fromcode)
+{
+    iconv_t icd = iconv_open("UTF-8", fromcode);
+
+    if (icd != (iconv_t)(-1))
+    {
+        char *srcstr = title_orig;
+        char *deststr = title_locale;
+
+        size_t srclen = (NULL != srcstr) ? strlen(srcstr) + 1 : 0;
+        size_t destlen = 1024;
+        size_t wrtBytes = 0;
+
+        (void)iconv(icd, NULL, NULL, NULL, NULL); // reset conversion state
+
+        wrtBytes = iconv(icd, &srcstr, &srclen, &deststr, &destlen);
+        if (wrtBytes == (size_t)-1)
+        {
+            /*printf("error iconv\n");*/
+            return -1;
+        }
+    
+        iconv_close(icd);
+    }
+    else
+    {
+        /*printf("error iconv_open\n");*/
+        return -1;
+    }
+
+    return 0;
+}
+
+#endif
+

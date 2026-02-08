@@ -1,24 +1,32 @@
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+
 #ifdef _MSC_VER
 #include <SDL.h>
+
 #endif // _MSC_VER
+
 #ifdef __GNUC__
 #include <SDL.h>
 #include <unistd.h>
 #include <stdlib.h>
-#endif // __GNUC__
-#include <getopt.h>
 
+#endif // __GNUC__
+#include "getopt.h"
 
 #ifdef USE_ICONV
+
 #ifdef _MSC_VER
 #include <windows.h>
+
 #endif // _MSC_VER
 
 #include <iconv.h>
-#endif
+#include "sjis.h"
+#include "utf8.h"
+
+#endif // USE_ICONV
 
 #include "mdxmini.h"
 
@@ -283,7 +291,7 @@ static void audio_disp_title(t_mdxmini *data)
     {
         ;
     }
-#endif
+#endif // USE_ICONV
 
     if (!g_viewnote)
     {
@@ -318,9 +326,9 @@ static void audio_disp_title(t_mdxmini *data)
 
 #ifdef _MSC_VER
 //	p = strrchr ((char*)file, '\\');
-#else
+#else // _MSC_VER
 //	p = strrchr ((char*)file, '/');
-#endif
+#endif // _MSC_VER
 
 //	if ( p )
 //	{
@@ -817,13 +825,78 @@ int audio_main(int argc, char *argv[])
         }
         if (mini.mdx->haspdx)
         {
-            char pdx_lcl_name[1024];
-            pdx_lcl_name[0] = '\0';
+            char pdx_lcl_name[1024] = { 0, };
             mdx_get_pdxfilename( &mini, pdx_lcl_name );
+            char pdx_lcl_iconv_name[1024] = { 0, };
+            int pdx_lcl_name_len = 0;
+            while ('\0' != pdx_lcl_name[pdx_lcl_name_len])
+            {
+                pdx_lcl_name_len++;
+            }
+
+#ifdef USE_ICONV
+
+            if (0 == conv_with_iconv(pdx_lcl_name, pdx_lcl_iconv_name, "SHIFT-JIS"))
+            {
+                if ('\0' != pdx_lcl_iconv_name[0])
+                {
+#ifdef _MSC_VER
+                    UINT oldCodePage;
+                    oldCodePage = GetConsoleOutputCP();
+                    if (!SetConsoleOutputCP(65001)) {
+                        printf("error\n");
+                    }
+                    printf("PDX File : ");
+                    fwrite(pdx_lcl_iconv_name, 1, strlen(pdx_lcl_iconv_name) + 1, stdout);
+                    printf("\n");
+
+                    SetConsoleOutputCP(oldCodePage);
+
+#else // _MSC_VER
+                    printf("PDX File : %s\n", pdx_lcl_iconv_name);
+
+#endif // _MSC_VER
+                }
+            }
+            else if (0 == conv_with_iconv(pdx_lcl_name, pdx_lcl_iconv_name, "CP932"))
+            {
+                if ('\0' != pdx_lcl_iconv_name[0])
+                {
+#ifdef _MSC_VER
+                    UINT oldCodePage;
+                    oldCodePage = GetConsoleOutputCP();
+                    if (!SetConsoleOutputCP(65001)) {
+                        printf("error\n");
+                    }
+                    printf("PDX File : ");
+                    fwrite(pdx_lcl_iconv_name, 1, strlen(pdx_lcl_iconv_name) + 1, stdout);
+                    printf("\n");
+
+                    SetConsoleOutputCP(oldCodePage);
+
+#else // _MSC_VER
+                    printf("PDX File : %s\n", pdx_lcl_iconv_name);
+
+#endif // _MSC_VER
+                }
+            }
+            else
+            {
+                if ('\0' != pdx_lcl_name[0])
+                {
+                    sjis_to_utf8(pdx_lcl_name, (pdx_lcl_name_len + 1), pdx_lcl_iconv_name, 1024);
+                    printf("PDX File : %s\n", pdx_lcl_iconv_name);
+                }
+            }
+
+#else // USE_ICONV
             if ('\0' != pdx_lcl_name[0])
             {
-                printf("PDX File : %s\n", pdx_lcl_name);
+                sjis_to_utf8(pdx_lcl_name, (pdx_lcl_name_len + 1), pdx_lcl_iconv_name, 1024);
+                printf("PDX File : %s\n", pdx_lcl_iconv_name);
             }
+
+#endif // USE_ICONV
         }
         else
         {
