@@ -906,9 +906,16 @@ int audio_main(int argc, char *argv[])
               pdx_lcl_name[0] = '\0';
               mini.mdx->haspdx = 1; /* forced value trying to print not found PDX */
               mdx_get_pdxfilename( &mini, pdx_lcl_name );
+              char pdx_lcl_iconv_name[1024] = { 0, };
+              int pdx_lcl_name_len = 0;
+              while ('\0' != pdx_lcl_name[pdx_lcl_name_len])
+              {
+                  pdx_lcl_name_len++;
+              }
               if ('\0' != pdx_lcl_name[0])
               {
-                  printf("PDX File : %s NOT FOUND\n", pdx_lcl_name);
+                  sjis_to_utf8(pdx_lcl_name, (pdx_lcl_name_len + 1), pdx_lcl_iconv_name, 1024);
+                  printf("PDX File : %s NOT FOUND\n", pdx_lcl_iconv_name);
               }
               mini.mdx->haspdx = 0; /* restored value after use */
           }
