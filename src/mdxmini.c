@@ -38,15 +38,13 @@ extern NLGCTX *nlgctx;
 #endif // USE_NLG
        
 #ifdef USE_ICONV
-#ifdef _MSC_VER
-#include <windows.h>
-#endif // _MSC_VER
-        
+
 #include <iconv.h>
-#include "sjis.h"
-#include "utf8.h"
 
 #endif // USE_ICONV 
+
+#include "sjis.h"
+#include "utf8.h"
 
 /* ------------------------------------------------------------------ */
 #define PATH_BUF_SIZE 1024

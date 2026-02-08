@@ -23,10 +23,11 @@
 #endif // _MSC_VER
 
 #include <iconv.h>
-#include "sjis.h"
-#include "utf8.h"
 
 #endif // USE_ICONV
+
+#include "sjis.h"
+#include "utf8.h"
 
 #include "mdxmini.h"
 
@@ -268,29 +269,39 @@ static int conv_with_iconv(char *title_orig, char *title_locale, const char *fro
 
 static void audio_disp_title(t_mdxmini *data)
 {
-    char *title;
-
     char title_orig[1024] = { 0, };
-
-    title = title_orig;
-
-    mdx_get_title(data, title_orig);
-
-#ifdef USE_ICONV
     char title_locale[1024] = { 0, };
 
-    if (0 == conv_with_iconv(title_orig, title_locale, "SHIFT-JIS"))
+    mdx_get_title(data, title_orig);
+    int title_orig_len = 0;
+    while ('\0' != title_orig[title_orig_len])
     {
-        title = title_locale;
+        title_orig_len++;
     }
-    else if (0 == conv_with_iconv(title_orig, title_locale, "CP932"))
+
+#ifdef USE_ICONV
+    if ('\0' != title_orig[0])
     {
-        title = title_locale;
+        if (0 == conv_with_iconv(title_orig, title_locale, "SHIFT-JIS"))
+        {
+            ;
+        }
+        else if (0 == conv_with_iconv(title_orig, title_locale, "CP932"))
+        {
+            ;
+        }
+        else
+        {
+            sjis_to_utf8(title_orig, (title_orig_len + 1), title_locale, 1024);
+        }
     }
-    else
+
+#else // USE_ICONV
+    if ('\0' != title_orig[0])
     {
-        ;
+        sjis_to_utf8(title_orig, (title_orig_len + 1), title_locale, 1024);
     }
+
 #endif // USE_ICONV
 
     if (!g_viewnote)
@@ -302,13 +313,13 @@ static void audio_disp_title(t_mdxmini *data)
             printf("error\n");
         }
         printf("Title:");
-        fwrite(title, 1, strlen(title) + 1, stdout);
+        fwrite(title_locale, 1, strlen(title_locale) + 1, stdout);
         printf("\n");
 
         SetConsoleOutputCP(oldCodePage);
 
 #else // _MSC_VER
-        printf("Title:%s\n", title);
+        printf("Title:%s\n", title_locale);
 
 #endif // _MSC_VER
 
