@@ -1,3 +1,8 @@
+#ifdef _MSC_VER
+#include <windows.h>
+
+#endif // _MSC_VER
+
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
@@ -13,15 +18,10 @@
 #include <stdlib.h>
 
 #endif // __GNUC__
+
 #include "getopt.h"
 
 #ifdef USE_ICONV
-
-#ifdef _MSC_VER
-#include <windows.h>
-
-#endif // _MSC_VER
-
 #include <iconv.h>
 
 #endif // USE_ICONV
@@ -32,6 +32,11 @@
 #include "mdxmini.h"
 
 #include "nlg.h"
+
+#ifdef DEBUG
+#include <stdio.h>
+
+#endif // DEBUG
 
 NLGCTX *nlgctx;
 
@@ -802,6 +807,59 @@ int audio_main(int argc, char *argv[])
     {
 
         char *playfile = argv[optind];
+
+#ifdef DEBUG
+        char playfile_locale[1024] = { 0, };
+
+        int playfile_len = 0;
+        while ('\0' != playfile[playfile_len])
+        {
+            playfile_len++;
+        }
+
+#ifdef USE_ICONV
+        if ('\0' != playfile[0])
+        {
+            if (0 == conv_with_iconv(playfile, playfile_locale, "SHIFT-JIS"))
+            {
+                ;
+            }
+            else if (0 == conv_with_iconv(playfile, playfile_locale, "CP932"))
+            {
+                ;
+            }
+            else
+            {
+                sjis_to_utf8(playfile, (playfile_len + 1), playfile_locale, 1024);
+            }
+        }
+
+#else // USE_ICONV
+        if ('\0' != playfile[0])
+        {
+            sjis_to_utf8(playfile, (playfile_len + 1), playfile_locale, 1024);
+        }
+
+#endif // USE_ICONV
+
+#ifdef _MSC_VER
+        UINT oldCodePage;
+        oldCodePage = GetConsoleOutputCP();
+        if (!SetConsoleOutputCP(65001)) {
+            printf("error\n");
+        }
+        printf("Filename : ");
+        fwrite(playfile_locale, 1, strlen(playfile_locale) + 1, stdout);
+        printf("\n");
+
+        SetConsoleOutputCP(oldCodePage);
+
+#else // _MSC_VER
+        printf("Filename : %s\n", playfile_locale);
+
+#endif // _MSC_VER
+
+#endif // DEBUG
 
         // make NLG log
         if (nlg_log)

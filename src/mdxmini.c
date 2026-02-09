@@ -21,6 +21,10 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
+#ifdef _MSC_VER
+#include <windows.h>
+
+#endif // _MSC_VER
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,19 +33,18 @@
 
 #include "mdxmini.h"
 #include "class.h"
-
+#define DEBUG
 #ifdef USE_NLG
 
 #include "nlg.h"
 extern NLGCTX *nlgctx;
 
 #endif // USE_NLG
-       
-#ifdef USE_ICONV
 
+#ifdef USE_ICONV
 #include <iconv.h>
 
-#endif // USE_ICONV 
+#endif // USE_ICONV
 
 #include "sjis.h"
 #include "utf8.h"
@@ -173,7 +176,7 @@ int mdx_open( t_mdxmini *data, char *filename , char *pcmdir )
   mdx->max_infinite_loops  = max_infinite_loops;
   mdx->fade_out_speed      = fade_out_speed;
 
-  mdx->is_output_to_stdout = is_output_to_stdout; 
+  mdx->is_output_to_stdout = is_output_to_stdout;
   mdx->is_use_fragment     = is_use_fragment;
   mdx->dsp_device          = dsp_device;
   mdx->dump_voice          = dump_voice;
@@ -232,7 +235,7 @@ void mdx_disp_info(t_mdxmini *data)
 {
     /* output Title, etc... */
 
-    if ( data->mdx->is_output_titles == FLAG_TRUE ) 
+    if ( data->mdx->is_output_titles == FLAG_TRUE )
 	{
       mdx_output_titles( data->mdx );
     }
@@ -321,10 +324,10 @@ int mdx_calc_log(t_mdxmini *data, short *buf, int buffer_size)
 {
 	int s_pos;
 	int next,frame;
-	
+
 	next = 1;
 	s_pos = 0;
-	
+
 	do
 	{
 		if (!data->samples)
@@ -333,11 +336,11 @@ int mdx_calc_log(t_mdxmini *data, short *buf, int buffer_size)
             if (data->nlg_tempo != data->mdx->tempo)
             {
                 data->nlg_tempo = data->mdx->tempo;
-                
+
                 int tempo_us = (1000 * 1024 * (256 - data->nlg_tempo)) / 4000;
                 WriteNLG_CTC(nlgctx, CMD_CTC0, 4); // 4 * 64 = 256us
                 WriteNLG_CTC(nlgctx, CMD_CTC3, (tempo_us / 256));
-                
+
             }
             WriteNLG_IRQ(nlgctx);
 #endif
@@ -345,18 +348,18 @@ int mdx_calc_log(t_mdxmini *data, short *buf, int buffer_size)
 			frame = mdx_frame_length(data);
 			data->samples = (data->mdx->dsp_speed * frame)/1000000;
 		}
-        
+
         int calc_len = data->samples;
-        
+
 		if (calc_len + s_pos >= buffer_size)
             calc_len = buffer_size - s_pos;
-        
+
         data->samples -= calc_len;
         s_pos += calc_len;
-        
-		
+
+
 	}while(s_pos < buffer_size);
-    
+
 	return next;
 }
 
@@ -407,10 +410,10 @@ void mdx_get_current_notes ( t_mdxmini *data , int *notes , int len )
 void mdx_close(t_mdxmini *data)
 {
     /* one playing finished */
-	
+
 	if (data->self)
 		mdx_parse_mml_ym2151_async_finalize(data->songdata);
-    
+
     mdx_close_pdx( data->pdx );
     mdx_close_mdx( data->mdx );
 
@@ -429,12 +432,12 @@ int  mdx_get_buffer_size ( t_mdxmini *data )
 
 /* pdx loading */
 
-static unsigned char* _load_pdx_data(char* name, long* out_length) 
+static unsigned char* _load_pdx_data(char* name, long* out_length)
 {
   int len;
   FILE *fp;
   unsigned char *buf = NULL;
-  
+
   fp = fopen(name,"rb");
 
   if (!fp)
@@ -443,7 +446,7 @@ static unsigned char* _load_pdx_data(char* name, long* out_length)
   fseek(fp, 0, SEEK_END);
   len = (int)ftell(fp);
   fseek(fp, 0, SEEK_SET);
-  
+
   buf = (unsigned char *)malloc(sizeof(unsigned char) * len);
   if ( !buf ) {
     goto error_end;
@@ -454,9 +457,9 @@ static unsigned char* _load_pdx_data(char* name, long* out_length)
     goto error_end;
   }
   fclose(fp);
-  
+
   *out_length  = len;
-  
+
   return buf;
 
 error_end:
@@ -505,7 +508,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
     pdx_name_len++;
   }
   char pdx_iconv_name[1024] = { 0, };
-  
+
 #ifdef USE_ICONV
 
             if (0 == conv_with_iconv(mdx->pdx_name, pdx_iconv_name, "SHIFT-JIS"))
@@ -514,6 +517,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 #ifdef DEBUG
                 if ('\0' != pdx_iconv_name[0])
                 {
+
 #ifdef _MSC_VER
                     UINT oldCodePage;
                     oldCodePage = GetConsoleOutputCP();
@@ -540,6 +544,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 #ifdef DEBUG
                 if ('\0' != pdx_iconv_name[0])
                 {
+
 #ifdef _MSC_VER
                     UINT oldCodePage;
                     oldCodePage = GetConsoleOutputCP();
@@ -567,7 +572,23 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
                     sjis_to_utf8(mdx->pdx_name, (pdx_name_len + 1), pdx_iconv_name, 1024);
 
 #ifdef DEBUG
+
+#ifdef _MSC_VER
+                    UINT oldCodePage;
+                    oldCodePage = GetConsoleOutputCP();
+                    if (!SetConsoleOutputCP(65001)) {
+                        printf("error\n");
+                    }
+                    printf("PDX File sjis_to_utf8 : ");
+                    fwrite(pdx_iconv_name, 1, strlen(pdx_iconv_name) + 1, stdout);
+                    printf("\n");
+
+                    SetConsoleOutputCP(oldCodePage);
+
+#else // _MSC_VER
                     printf("PDX File sjis_to_utf8 : %s\n", pdx_iconv_name);
+
+#endif // _MSC_VER
 
 #endif // DEBUG
                 }
@@ -577,7 +598,23 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   sjis_to_utf8(mdx->pdx_name, (pdx_name_len + 1), pdx_iconv_name, 1024);
 
 #ifdef DEBUG
+
+#ifdef _MSC_VER
+  UINT oldCodePage;
+  oldCodePage = GetConsoleOutputCP();
+  if (!SetConsoleOutputCP(65001)) {
+     printf("error\n");
+  }
+  printf("PDX File sjis_to_utf8 : ");
+  fwrite(pdx_iconv_name, 1, strlen(pdx_iconv_name) + 1, stdout);
+  printf("\n");
+
+  SetConsoleOutputCP(oldCodePage);
+
+#else // _MSC_VER
   printf("PDX File sjis_to_utf8 : %s\n", pdx_iconv_name);
+
+#endif // _MSC_VER
 
 #endif // DEBUG
 
@@ -827,7 +864,7 @@ self_destroy(songdata *songdata)
 #ifdef USE_ICONV
 /*
 // conv_with_iconv
-*/          
+*/
 
 static int conv_with_iconv(char *title_orig, char *title_locale, const char *fromcode)
 {
@@ -850,7 +887,7 @@ static int conv_with_iconv(char *title_orig, char *title_locale, const char *fro
             /*printf("error iconv\n");*/
             return -1;
         }
-    
+
         iconv_close(icd);
     }
     else
