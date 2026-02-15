@@ -1,5 +1,8 @@
 #ifdef _MSC_VER
 #include <windows.h>
+#include <wchar.h>
+#include <stdbool.h>
+#include <locale.h>
 
 #endif // _MSC_VER
 
@@ -32,6 +35,12 @@
 #include "mdxmini.h"
 
 #include "nlg.h"
+
+#ifdef _MSC_VER
+bool isLikelyUTF8(const wchar_t *wstr);
+bool isLikelyUTF16(const char *str);
+
+#endif // _MSC_VER
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -89,7 +98,14 @@ static void audio_disp_title(t_mdxmini *data);
 static void audio_loop(t_mdxmini *data, int freq, int len, int nloops);
 static void audio_loop_file(t_mdxmini *data, const char *file, int freq , int len, int nloops);
 static void usage(void);
+
+#ifdef _MSC_VER
+int audio_main(int argc, wchar_t *argv[]);
+
+#else // _MSC_VER
 int audio_main(int argc, char *argv[]);
+
+#endif // _MSC_VER
 
 /*
 // audio_callback
@@ -337,23 +353,23 @@ static void audio_disp_title(t_mdxmini *data)
 
 //static int split_dir(const char *file , char *dir)
 //{
-//	char *p;
-//	int len = 0;
+//      char *p;
+//      int len = 0;
 
 #ifdef _MSC_VER
-//	p = strrchr ((char*)file, '\\');
+//      p = strrchr ((char*)file, '\\');
 #else // _MSC_VER
-//	p = strrchr ((char*)file, '/');
+//      p = strrchr ((char*)file, '/');
 #endif // _MSC_VER
 
-//	if ( p )
-//	{
-//		len = (int)( p - file );
-//		strncpy ( dir , file , len );
-//	}
-//	dir[ len ] = 0;
+//      if ( p )
+//      {
+//              len = (int)( p - file );
+//              strncpy ( dir , file , len );
+//      }
+//      dir[ len ] = 0;
 
-//	return len;
+//      return len;
 //}
 
 /*
@@ -677,7 +693,14 @@ static void usage(void)
 // audio_main
 */
 
+
+#ifdef _MSC_VER
+int audio_main(int argc, wchar_t *argv[])
+
+#else // _MSC_VER
 int audio_main(int argc, char *argv[])
+
+#endif // _MSC_VER
 {
     t_mdxmini mini;
 
@@ -714,7 +737,33 @@ int audio_main(int argc, char *argv[])
         return 1;
     }
 
+#ifdef _MSC_VER
+    char ** argv_windows_ANSI = (char **)malloc(sizeof(char *) * argc);
+    for (int i = 0; i < argc; i++) {
+
+        // Convert to ANSI
+        int ansiLen = WideCharToMultiByte(CP_ACP, 0, argv[i], -1, NULL, 0, NULL, NULL);
+        char *ansi = (char *)malloc(ansiLen);
+        WideCharToMultiByte(CP_ACP, 0, argv[i], -1, ansi, ansiLen, NULL, NULL);
+
+#ifdef DEBUG
+        printf("As ANSI string: %s\n", ansi);
+
+#endif // DEBUG
+
+        /*free(ansi);*/
+        argv_windows_ANSI[i] = ansi;
+    }
+
+#endif // _MSC_VER
+
+#ifdef _MSC_VER
+    while ((opt = getopt(argc, argv_windows_ANSI, "n:q:l:r:s:o:bpwhx")) != -1)
+
+#else // _MSC_VER
     while ((opt = getopt(argc, argv, "n:q:l:r:s:o:bpwhx")) != -1)
+
+#endif // _MSC_VER
     {
         switch (opt)
         {
@@ -758,6 +807,14 @@ int audio_main(int argc, char *argv[])
         }
     }
 
+#ifdef _MSC_VER
+    for (int i = 0; i < argc; i++) {
+        free(argv_windows_ANSI[i]);
+    }
+    free(argv_windows_ANSI);
+
+#endif // _MSC_VER
+
     if (rate < 8000)
     {
         rate = 8000;
@@ -780,24 +837,32 @@ int audio_main(int argc, char *argv[])
 
 #ifdef _MSC_VER
         char *home = getenv("USERPROFILE");
-#else
+
+#else // _MSC_VER
         char *home = getenv("HOME");
-#endif
+
+#endif // _MSC_VER
         if (home)
         {
             pcmpath = pcmpath_mem;
             strcpy(pcmpath, home);
+
 #ifdef _MSC_VER
             strcat(pcmpath,"\\");
-#else
+
+#else // _MSC_VER
             strcat(pcmpath,"/");
-#endif
+
+#endif // _MSC_VER
             strcat(pcmpath, ".mdxplay");
+
 #ifdef _MSC_VER
             strcat(pcmpath,"\\");
-#else
+
+#else // _MSC_VER
             strcat(pcmpath,"/");
-#endif
+
+#endif // _MSC_VER
 /*            strcat(pcmpath,_PATH_SEP);*/
         }
     }
@@ -806,58 +871,43 @@ int audio_main(int argc, char *argv[])
     for(;optind < argc; optind++)
     {
 
-        char *playfile = argv[optind];
+#ifdef _MSC_VER
+        // Convert to UTF-8
+        int utf8Len = WideCharToMultiByte(CP_UTF8, 0, argv[optind], -1, NULL, 0, NULL, NULL);
+        char *utf8 = (char *)malloc(utf8Len);
+        WideCharToMultiByte(CP_UTF8, 0, argv[optind], -1, utf8, utf8Len, NULL, NULL);
 
 #ifdef DEBUG
-        char playfile_locale[1024] = { 0, };
+        printf("As UTF-8 bytes: ");
+        for (int j = 0; j < utf8Len - 1; j++) printf("%02X ", (unsigned char)utf8[j]);
+        printf("\nAs UTF-8 string: %s\n", utf8);
 
-        int playfile_len = 0;
-        while ('\0' != playfile[playfile_len])
-        {
-            playfile_len++;
-        }
+#endif // DEBUG
+        // Convert to ANSI
+        int ansiLen = WideCharToMultiByte(CP_ACP, 0, argv[optind], -1, NULL, 0, NULL, NULL);
+        char *ansi = (char *)malloc(ansiLen);
+        WideCharToMultiByte(CP_ACP, 0, argv[optind], -1, ansi, ansiLen, NULL, NULL);
 
-#ifdef USE_ICONV
-        if ('\0' != playfile[0])
-        {
-            if (0 == conv_with_iconv(playfile, playfile_locale, "SHIFT-JIS"))
-            {
-                ;
-            }
-            else if (0 == conv_with_iconv(playfile, playfile_locale, "CP932"))
-            {
-                ;
-            }
-            else
-            {
-                sjis_to_utf8(playfile, (playfile_len + 1), playfile_locale, 1024);
-            }
-        }
+#ifdef DEBUG
+        printf("As ANSI string: %s\n", ansi);
 
-#else // USE_ICONV
-        if ('\0' != playfile[0])
-        {
-            sjis_to_utf8(playfile, (playfile_len + 1), playfile_locale, 1024);
-        }
+#endif // DEBUG
+        // Detect likely UTF-8 origin
+        bool check_UTF_8 = isLikelyUTF8(argv[optind]);
 
-#endif // USE_ICONV
+        printf("Likely UTF-8 originally? %s\n", (check_UTF_8) ? "Yes" : "No");
+        char *playfile = (check_UTF_8) ? utf8 : ansi;
 
-#ifdef _MSC_VER
-        UINT oldCodePage;
-        oldCodePage = GetConsoleOutputCP();
-        if (!SetConsoleOutputCP(65001)) {
-            printf("error\n");
-        }
-        printf("Filename : ");
-        fwrite(playfile_locale, 1, strlen(playfile_locale) + 1, stdout);
-        printf("\n");
-
-        SetConsoleOutputCP(oldCodePage);
+        /*free(utf8);*/
+        /*free(ansi);*/
 
 #else // _MSC_VER
-        printf("Filename : %s\n", playfile_locale);
+        char *playfile = argv[optind];
 
 #endif // _MSC_VER
+
+#ifdef DEBUG
+        printf("Filename : %s\n", playfile);
 
 #endif // DEBUG
 
@@ -1005,6 +1055,12 @@ int audio_main(int argc, char *argv[])
 
         // close mdx
         mdx_close(&mini);
+
+#ifdef _MSC_VER
+        free(utf8);
+        free(ansi);
+
+#endif // _MSC_VER
     }
 
     audio_free();
@@ -1017,12 +1073,62 @@ int audio_main(int argc, char *argv[])
 #undef main
 #endif
 
+#ifdef _MSC_VER
+
+// Check if UTF-8 round-trip matches original UTF-16
+bool isLikelyUTF8(const wchar_t *wstr) {
+    int utf8Len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL);
+    char *utf8 = (char *)malloc(utf8Len);
+    WideCharToMultiByte(CP_UTF8, 0, wstr, -1, utf8, utf8Len, NULL, NULL);
+
+    int wlen2 = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, utf8, -1, NULL, 0);
+    if (wlen2 == 0) { free(utf8); return false; }
+
+    wchar_t *wstr2 = (wchar_t *)malloc(wlen2 * sizeof(wchar_t));
+    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, utf8, -1, wstr2, wlen2);
+
+    bool match = (wcscmp(wstr, wstr2) == 0);
+    free(utf8);
+    free(wstr2);
+    return match;
+}
+
+// Check if UTF-16 round-trip matches original UTF-8
+bool isLikelyUTF16(const char *str) {
+    int utf16Len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, -1, NULL, 0);
+    wchar_t *utf16 = (wchar_t *)malloc(utf16Len * sizeof(wchar_t));
+    MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, -1, utf16, utf16Len);
+
+    int len2 = WideCharToMultiByte(CP_UTF8, 0, utf16, -1, NULL, 0, NULL, NULL);
+    if (len2 == 0) { free(utf16); return false; }
+
+    char *str2 = (char *)malloc(len2);
+    WideCharToMultiByte(CP_UTF8, 0, utf16, -1, str2, len2, NULL, NULL);
+
+    bool match = (strcmp(str, str2) == 0);
+    free(utf16);
+    free(str2);
+    return match;
+}
+
+#endif //  _MSC_VER
+
 /*
 // main
 */
 
+#ifdef _MSC_VER
+
+int wmain(int argc, wchar_t *argv[])
+{
+    // Set the locale to support UTF-8 output in console
+    setlocale(LC_ALL, ".UTF8");
+
+#else // _MSC_VER
 int main(int argc, char *argv[])
 {
+
+#endif // _MSC_VER
     int ret = audio_main(argc, argv);
 
 #ifdef DEBUG

@@ -1,0 +1,13 @@
+Windows command line
+chcp 65001
+
+Windows PowerShell
+# Set default encoding for Out-File, Set-Content, Add-Content
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
+
+# Also set console output encoding
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+# Also set console input encoding
+[Console]::InputEncoding  = [System.Text.Encoding]::UTF8
+

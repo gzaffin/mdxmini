@@ -17,9 +17,14 @@
 #include "mdx.h"
 
 #ifdef _MSC_VER
+#include <windows.h>
+#include <wchar.h>
+#include <stdbool.h>
 #define strncasecmp _strnicmp
 #define strcasecmp _stricmp
-#endif
+extern bool isLikelyUTF16(const char *str);
+
+#endif // _MSC_VER
 
 /* ------------------------------------------------------------------ */
 
@@ -42,7 +47,22 @@ __load_file(MDX_DATA* mdx, char* fnam)
   int len = 0;
   int result = 0;
 
-  fp = fopen( fnam, "rb" );
+#ifdef _MSC_VER
+    if (isLikelyUTF16(fnam)) {
+        int utf16Len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, fnam, -1, NULL, 0);
+        wchar_t *utf16 = (wchar_t *)malloc(utf16Len * sizeof(wchar_t));
+        MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, fnam, -1, utf16, utf16Len);
+
+        fp = _wfopen( utf16, L"rb" ); // Write mode, UTF-16 encoding
+        free(utf16);
+    } else {
+        fp = fopen( fnam, "rb" );
+    }
+
+#else // _MSC_VER
+    fp = fopen( fnam, "rb" );
+
+#endif // _MSC_VER
   if ( fp == NULL ) {
     return FLAG_FALSE;
   }
@@ -62,8 +82,6 @@ __load_file(MDX_DATA* mdx, char* fnam)
 
   result = (int)fread( buf, 1, len, fp );
   fclose(fp);
-	
-
 
   if (result!=len) {
     free(buf);
@@ -107,8 +125,8 @@ MDX_DATA *mdx_open_mdx( char *name ) {
   }
   while(1) {
     if ( buf[ptr+0] == 0x0d &&
-	 buf[ptr+1] == 0x0a &&
-	 buf[ptr+2] == 0x1a ) break;
+     buf[ptr+1] == 0x0a &&
+     buf[ptr+2] == 0x1a ) break;
 
     mdx->data_title[i++]=buf[ptr++];  /* warning! this text is SJIS */
     if ( i>=MDX_MAX_TITLE_LENGTH ) i--;
@@ -227,45 +245,45 @@ dump_voices(MDX_DATA* mdx, int num)
   fprintf(stdout, "#\t AR  D1R  D2R   RR   SL   TL   KS  MUL  DT1  DT2  AME\n");
   for ( i=0 ; i<4 ; i++ ) {
     fprintf(stdout, "\t%3d, %3d, %3d, %3d, %3d, %3d, %3d, %3d, %3d, %3d, %3d,\n",
-	    mdx->voice[num].ar[i],
-	    mdx->voice[num].d1r[i],
-	    mdx->voice[num].d2r[i],
-	    mdx->voice[num].rr[i],
-	    mdx->voice[num].sl[i],
-	    mdx->voice[num].tl[i],
-	    mdx->voice[num].ks[i],
-	    mdx->voice[num].mul[i],
-	    mdx->voice[num].dt1[i],
-	    mdx->voice[num].dt2[i],
-	    mdx->voice[num].ame[i] );
+        mdx->voice[num].ar[i],
+        mdx->voice[num].d1r[i],
+        mdx->voice[num].d2r[i],
+        mdx->voice[num].rr[i],
+        mdx->voice[num].sl[i],
+        mdx->voice[num].tl[i],
+        mdx->voice[num].ks[i],
+        mdx->voice[num].mul[i],
+        mdx->voice[num].dt1[i],
+        mdx->voice[num].dt2[i],
+        mdx->voice[num].ame[i] );
   }
   fprintf(stdout, "#\tCON   FL   SM\n");
   fprintf(stdout, "\t%3d, %3d, %3d )\n",
-	  mdx->voice[num].con,
-	  mdx->voice[num].fl,
-	  mdx->voice[num].slot_mask );
+      mdx->voice[num].con,
+      mdx->voice[num].fl,
+      mdx->voice[num].slot_mask );
   
   fprintf(stdout, "[ F0 7D 10 %02X ", num);
   sum = mdx->voice[num].v0;
   for ( i=0 ; i<4 ; i++ ) {
     fprintf(stdout, "%02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X ",
-	    mdx->voice[num].ar[i],
-	    mdx->voice[num].d1r[i],
-	    mdx->voice[num].d2r[i],
-	    mdx->voice[num].rr[i],
-	    mdx->voice[num].sl[i],
-	    mdx->voice[num].tl[i],
-	    mdx->voice[num].ks[i],
-	    mdx->voice[num].mul[i],
-	    mdx->voice[num].dt1[i],
-	    mdx->voice[num].dt2[i],
-	    mdx->voice[num].ame[i] );
+        mdx->voice[num].ar[i],
+        mdx->voice[num].d1r[i],
+        mdx->voice[num].d2r[i],
+        mdx->voice[num].rr[i],
+        mdx->voice[num].sl[i],
+        mdx->voice[num].tl[i],
+        mdx->voice[num].ks[i],
+        mdx->voice[num].mul[i],
+        mdx->voice[num].dt1[i],
+        mdx->voice[num].dt2[i],
+        mdx->voice[num].ame[i] );
     sum += mdx->voice[num].v1[i] + mdx->voice[num].v2[i] + mdx->voice[num].v3[i] + mdx->voice[num].v4[i] + mdx->voice[num].v5[i] + mdx->voice[num].v6[i];
   }
   fprintf(stdout, "%02X %02X %02X ",
-	  mdx->voice[num].con,
-	  mdx->voice[num].fl,
-	  mdx->voice[num].slot_mask );
+      mdx->voice[num].con,
+      mdx->voice[num].fl,
+      mdx->voice[num].slot_mask );
   
   fprintf(stdout, "%02X F7 ]\n", 0x80-(sum%0x7f));
   fprintf(stdout, "\n");

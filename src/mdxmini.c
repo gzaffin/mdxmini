@@ -23,6 +23,11 @@
 */
 #ifdef _MSC_VER
 #include <windows.h>
+#include <wchar.h>
+#include <stdbool.h>
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+extern bool isLikelyUTF16(const char *str);
 
 #endif // _MSC_VER
 
@@ -218,17 +223,17 @@ int mdx_open( t_mdxmini *data, char *filename , char *pcmdir )
 
 void mdx_set_dir ( t_mdxmini *data , char  * dir )
 {
-	strcpy(data->mdx->pdx_dir, dir );
+    strcpy(data->mdx->pdx_dir, dir );
 }
 
 void mdx_set_rate( int freq )
 {
-	dsp_speed = freq;
+    dsp_speed = freq;
 }
 
 void mdx_set_max_loop(t_mdxmini *data , int loop)
 {
-	data->mdx->max_infinite_loops = loop;
+    data->mdx->max_infinite_loops = loop;
 }
 
 void mdx_disp_info(t_mdxmini *data)
@@ -236,18 +241,18 @@ void mdx_disp_info(t_mdxmini *data)
     /* output Title, etc... */
 
     if ( data->mdx->is_output_titles == FLAG_TRUE )
-	{
+    {
       mdx_output_titles( data->mdx );
     }
 }
 
 int mdx_next_frame ( t_mdxmini *data )
 {
-	if (data->self)
-	{
-		return mdx_parse_mml_ym2151_async(data->songdata);
-	}
-	return 0;
+    if (data->self)
+    {
+        return mdx_parse_mml_ym2151_async(data->songdata);
+    }
+    return 0;
 }
 
 
@@ -260,78 +265,78 @@ int mdx_next_frame ( t_mdxmini *data )
 // unit: us
 int mdx_frame_length ( t_mdxmini *data )
 {
-	if (data->self)
-	{
-		return mdx_parse_mml_get_tempo(data->self);
-	}
-	return 0;
+    if (data->self)
+    {
+        return mdx_parse_mml_get_tempo(data->self);
+    }
+    return 0;
 }
 
 void mdx_make_buffer( t_mdxmini *data, short *buf , int buffer_size )
 {
-	mdx_parse_mml_ym2151_make_samples(buf , buffer_size, data->songdata);
+    mdx_parse_mml_ym2151_make_samples(buf , buffer_size, data->songdata);
 }
 
 int mdx_calc_sample(t_mdxmini *data, short *buf, int buffer_size)
 {
-	int s_pos;
-	int next,frame;
+    int s_pos;
+    int next,frame;
 
-	next = 1;
-	s_pos = 0;
+    next = 1;
+    s_pos = 0;
 
-	do
-	{
-		if (!data->samples)
-		{
-			long long int speed_times_frame;
+    do
+    {
+        if (!data->samples)
+        {
+            long long int speed_times_frame;
 #ifdef USE_NLG
-			if (data->nlg_tempo != data->mdx->tempo)
-			{
-				data->nlg_tempo = data->mdx->tempo;
+            if (data->nlg_tempo != data->mdx->tempo)
+            {
+                data->nlg_tempo = data->mdx->tempo;
 
-				int tempo_us = (1000 * 1024 * (256 - data->nlg_tempo)) / 4000;
-				WriteNLG_CTC(nlgctx, CMD_CTC0, 4); // 4 * 64 = 256us
-				WriteNLG_CTC(nlgctx, CMD_CTC3, (tempo_us / 256));
-			}
-			WriteNLG_IRQ(nlgctx);
+                int tempo_us = (1000 * 1024 * (256 - data->nlg_tempo)) / 4000;
+                WriteNLG_CTC(nlgctx, CMD_CTC0, 4); // 4 * 64 = 256us
+                WriteNLG_CTC(nlgctx, CMD_CTC3, (tempo_us / 256));
+            }
+            WriteNLG_IRQ(nlgctx);
 #endif
-			next = mdx_next_frame(data);
-			frame = mdx_frame_length(data);
-			speed_times_frame = (long long int)data->mdx->dsp_speed * (long long int)frame;
-			speed_times_frame /= 1000000ll;
-			data->samples = speed_times_frame;
-		}
+            next = mdx_next_frame(data);
+            frame = mdx_frame_length(data);
+            speed_times_frame = (long long int)data->mdx->dsp_speed * (long long int)frame;
+            speed_times_frame /= 1000000ll;
+            data->samples = speed_times_frame;
+        }
 
-		int calc_len = data->samples;
+        int calc_len = data->samples;
 
-		if (calc_len + s_pos >= buffer_size)
-			calc_len = buffer_size - s_pos;
+        if (calc_len + s_pos >= buffer_size)
+            calc_len = buffer_size - s_pos;
 
-		mdx_parse_mml_ym2151_make_samples(
-			buf + (s_pos * data->channels),
-			calc_len,
-			data->songdata);
+        mdx_parse_mml_ym2151_make_samples(
+            buf + (s_pos * data->channels),
+            calc_len,
+            data->songdata);
 
-		data->samples -= calc_len;
-		s_pos += calc_len;
-	} while(s_pos < buffer_size);
+        data->samples -= calc_len;
+        s_pos += calc_len;
+    } while(s_pos < buffer_size);
 
-	return next;
+    return next;
 }
 
 int mdx_calc_log(t_mdxmini *data, short *buf, int buffer_size)
 {
-	int s_pos;
-	int next,frame;
+    int s_pos;
+    int next,frame;
 
-	next = 1;
-	s_pos = 0;
+    next = 1;
+    s_pos = 0;
 
-	do
-	{
-		if (!data->samples)
-		{
+    do
+    {
+        if (!data->samples)
+        {
 #ifdef USE_NLG
             if (data->nlg_tempo != data->mdx->tempo)
             {
@@ -344,75 +349,75 @@ int mdx_calc_log(t_mdxmini *data, short *buf, int buffer_size)
             }
             WriteNLG_IRQ(nlgctx);
 #endif
-			next = mdx_next_frame(data);
-			frame = mdx_frame_length(data);
-			data->samples = (data->mdx->dsp_speed * frame)/1000000;
-		}
+            next = mdx_next_frame(data);
+            frame = mdx_frame_length(data);
+            data->samples = (data->mdx->dsp_speed * frame)/1000000;
+        }
 
         int calc_len = data->samples;
 
-		if (calc_len + s_pos >= buffer_size)
+        if (calc_len + s_pos >= buffer_size)
             calc_len = buffer_size - s_pos;
 
         data->samples -= calc_len;
         s_pos += calc_len;
 
 
-	}while(s_pos < buffer_size);
+    }while(s_pos < buffer_size);
 
-	return next;
+    return next;
 }
 
 void mdx_get_pdxfilename( t_mdxmini *data, char *title )
 {
-	if (NULL != title)
-	{
-		if (data->mdx->haspdx)
-		{
-			strcpy(title,data->mdx->pdx_name);
-		}
-		else
-		{
-			title[0] = '\0';
-		}
-	}
+    if (NULL != title)
+    {
+        if (data->mdx->haspdx)
+        {
+            strcpy(title,data->mdx->pdx_name);
+        }
+        else
+        {
+            title[0] = '\0';
+        }
+    }
 }
 
 void mdx_get_title( t_mdxmini *data, char *title )
 {
-	strcpy(title,data->mdx->data_title);
+    strcpy(title,data->mdx->data_title);
 }
 
 int mdx_get_length( t_mdxmini *data )
 {
-	ym2151_set_logging(0, data->songdata);
-	int len = mdx_parse_mml_ym2151_async_get_length(data->songdata);
-	ym2151_set_logging(1, data->songdata);
+    ym2151_set_logging(0, data->songdata);
+    int len = mdx_parse_mml_ym2151_async_get_length(data->songdata);
+    ym2151_set_logging(1, data->songdata);
 
-	return len;
+    return len;
 }
 
 int mdx_get_tracks ( t_mdxmini *data )
 {
-	return data->mdx->tracks;
+    return data->mdx->tracks;
 }
 
 void mdx_get_current_notes ( t_mdxmini *data , int *notes , int len )
 {
-	int i;
+    int i;
 
-	for ( i = 0; i < len; i++ )
-	{
-		notes[i] = data->mdx->track[i].note;
-	}
+    for ( i = 0; i < len; i++ )
+    {
+        notes[i] = data->mdx->track[i].note;
+    }
 }
 
 void mdx_close(t_mdxmini *data)
 {
     /* one playing finished */
 
-	if (data->self)
-		mdx_parse_mml_ym2151_async_finalize(data->songdata);
+    if (data->self)
+        mdx_parse_mml_ym2151_async_finalize(data->songdata);
 
     mdx_close_pdx( data->pdx );
     mdx_close_mdx( data->mdx );
@@ -422,12 +427,12 @@ void mdx_close(t_mdxmini *data)
 
 int  mdx_get_sample_size ( t_mdxmini *data )
 {
-	return pcm8_get_sample_size(data->songdata);
+    return pcm8_get_sample_size(data->songdata);
 }
 
 int  mdx_get_buffer_size ( t_mdxmini *data )
 {
-	return pcm8_get_buffer_size(data->songdata);
+    return pcm8_get_buffer_size(data->songdata);
 }
 
 /* pdx loading */
@@ -438,10 +443,25 @@ static unsigned char* _load_pdx_data(char* name, long* out_length)
   FILE *fp;
   unsigned char *buf = NULL;
 
+#ifdef _MSC_VER
+    if (isLikelyUTF16(name)) {
+        int utf16Len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, name, -1, NULL, 0);
+        wchar_t *utf16 = (wchar_t *)malloc(utf16Len * sizeof(wchar_t));
+        MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, name, -1, utf16, utf16Len);
+
+        fp = _wfopen(utf16, L"rb"); // Write mode, UTF-16 encoding
+        free(utf16);
+    } else {
+        fp = fopen(name, "rb");
+    }
+
+#else // _MSC_VER
   fp = fopen(name,"rb");
 
+#endif // _MSC_VER
+
   if (!fp)
-	return NULL;
+    return NULL;
 
   fseek(fp, 0, SEEK_END);
   len = (int)ftell(fp);
@@ -464,9 +484,9 @@ static unsigned char* _load_pdx_data(char* name, long* out_length)
 
 error_end:
   if (fp)
-	fclose(fp);
+    fclose(fp);
   if (buf)
-	free(buf);
+    free(buf);
 
   return NULL;
 }
