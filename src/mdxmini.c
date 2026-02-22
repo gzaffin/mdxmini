@@ -61,16 +61,6 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath);
 static int self_construct(songdata* songdata);
 static void self_destroy(songdata* songdata);
 
-//static void usage( void );
-//static void display_version( void );
-
-// static char mdx_path[1024];
-
-#ifdef USE_ICONV
-static int conv_with_iconv(char *title_orig, char *title_locale, const char *fromcode);
-
-#endif
-
 /* ------------------------------------------------------------------ */
 // static char *command_name;
 static char *pdx_pathname;
@@ -510,7 +500,6 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 {
   char *a = NULL;
   char buf[PATH_BUF_SIZE];
-  char buf_capital_chars[PATH_BUF_SIZE];
   PDX_DATA* pdx = NULL;
 
   mdx->pdx_enable = FLAG_FALSE;
@@ -658,58 +647,48 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   {
     buf[0] = 0;
   }
-  strcpy( buf_capital_chars, buf );
 
-  a=strrchr( pdx_iconv_name/*mdx->pdx_name*/, '.' );
+  a=strrchr( pdx_iconv_name, '.' );
   if (a != NULL)
   {
     if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
     {
-      strcat( buf, pdx_iconv_name/*mdx->pdx_name*/ );
-    }
-    else
-    {
-      goto no_pdx_file;
+      strcat( buf, pdx_iconv_name );
     }
   }
   else
   {
-    strcat( buf, pdx_iconv_name/*mdx->pdx_name*/ );
+    strcat( buf, pdx_iconv_name );
     strcat( buf, ".PDX" );
   }
   pdx=_open_pdx( buf );
 
   if (NULL == pdx)
   {
-    int buf_capital_chars_len, i, lcl_char;
-    i = 0;
-    buf_capital_chars_len = (int)strlen( buf_capital_chars );
-    do
+    a=strrchr( buf, '.' );
+    if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
     {
-      lcl_char = toupper(mdx->pdx_name[i]);
-      buf_capital_chars[buf_capital_chars_len + i] = lcl_char;
-      i++;
+      a[1] = 'p';
+      a[2] = 'd';
+      a[3] = 'x';
     }
-    while ('\0' != lcl_char);
-
-    pdx=_open_pdx( buf_capital_chars );
+    else
+    {
+      goto no_pdx_file;
+    }
+ 
+    pdx=_open_pdx( buf );
     if ( NULL != pdx )
     {
       goto get_pdx_file;
     }
   }
-  else
-  {
-    goto get_pdx_file;
-  }
 
   if (NULL == pdx)
   {
     buf[0] = '\0';
-    buf_capital_chars[0] = '\0';
     // specified pdx directory
     strcpy( buf, mdx->pdx_dir );
-    strcpy( buf_capital_chars, buf );
 
     int len = (int)strlen( buf );
 #ifdef _MSC_VER
@@ -725,21 +704,17 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
     }
 
 #endif // _MSC_VER
-    a=strrchr( pdx_iconv_name/*mdx->pdx_name*/, '.' );
+    a=strrchr( pdx_iconv_name, '.' );
     if (a != NULL)
     {
       if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
       {
-        strcat( buf, pdx_iconv_name/*mdx->pdx_name*/ );
-      }
-      else
-      {
-        goto no_pdx_file;
+        strcat( buf, pdx_iconv_name );
       }
     }
     else
     {
-      strcat( buf, pdx_iconv_name/*mdx->pdx_name*/ );
+      strcat( buf, pdx_iconv_name );
       strcat( buf, ".PDX" );
     }
     pdx=_open_pdx( buf );
@@ -750,27 +725,28 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
     }
     else
     {
-      int buf_capital_chars_len, i, lcl_char;
-      i = 0;
-      buf_capital_chars_len = (int)strlen( buf_capital_chars );
-      do
+      a=strrchr( buf, '.' );
+      if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
       {
-        lcl_char = toupper(mdx->pdx_name[i]);
-        buf_capital_chars[buf_capital_chars_len + i] = lcl_char;
-        i++;
+          a[1] = 'p';
+          a[2] = 'd';
+          a[3] = 'x';
       }
-      while ('\0' != lcl_char);
-
-      pdx=_open_pdx( buf_capital_chars );
+      else
+      {
+          goto no_pdx_file;
+      }
+ 
+      pdx=_open_pdx( buf );
       if ( NULL != pdx )
       {
-        goto get_pdx_file;
+          goto get_pdx_file;
+      }
+      else
+      {
+          goto no_pdx_file;
       }
     }
-  }
-  else
-  {
-    goto get_pdx_file;
   }
 
   no_pdx_file:
@@ -880,20 +856,19 @@ self_destroy(songdata *songdata)
   }
 }
 
-
 #ifdef USE_ICONV
 /*
 // conv_with_iconv
 */
 
-static int conv_with_iconv(char *title_orig, char *title_locale, const char *fromcode)
+int conv_with_iconv(char *origin, char *locale, const char *fromcode)
 {
     iconv_t icd = iconv_open("UTF-8", fromcode);
 
     if (icd != (iconv_t)(-1))
     {
-        char *srcstr = title_orig;
-        char *deststr = title_locale;
+        char *srcstr = origin;
+        char *deststr = locale;
 
         size_t srclen = (NULL != srcstr) ? strlen(srcstr) + 1 : 0;
         size_t destlen = 1024;
@@ -919,5 +894,5 @@ static int conv_with_iconv(char *title_orig, char *title_locale, const char *fro
     return 0;
 }
 
-#endif
+#endif // USE_ICONV
 

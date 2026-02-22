@@ -51,4 +51,9 @@ int  mdx_get_sample_size(t_mdxmini *data);
 int  mdx_get_tracks(t_mdxmini *data);
 void mdx_get_current_notes(t_mdxmini *data, int *notes, int len);
 
+#ifdef USE_ICONV
+extern int conv_with_iconv(char *origin, char *locale, const char *fromcode);
+
+#endif // USE_ICONV
+
 #endif
