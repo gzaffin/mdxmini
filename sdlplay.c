@@ -475,6 +475,10 @@ static void audio_loop(t_mdxmini *data, int freq, int len, int nloops)
     SDL_PauseAudio(1);
 }
 
+/*
+// audio_loop_file
+*/
+
 static void audio_loop_file(t_mdxmini *data, const char *file, int freq, int len, int nloops)
 {
     FILE *fp = NULL;
@@ -664,8 +668,8 @@ int audio_main(int argc, char *argv[])
 {
     t_mdxmini mini;
 
-    char pcmpath_mem[1024];
-    char nlgpath_mem[1024];
+    char pcmpath_mem[1024] = { 0, };
+    char nlgpath_mem[1024] = { 0, };
 
     char *nlgfile = NULL;
     char *pcmpath = NULL;
@@ -823,7 +827,6 @@ int audio_main(int argc, char *argv[])
             strcat(pcmpath,"/");
 
 #endif // _MSC_VER
-/*            strcat(pcmpath,_PATH_SEP);*/
         }
     }
 

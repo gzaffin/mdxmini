@@ -142,23 +142,14 @@ MDX_DATA *mdx_open_mdx( char *name ) {
     mdx->pdx_name[i]='\0';
   }
   i=0;
-  j=0;
   mdx->haspdx=FLAG_FALSE;
   while(1) {
     if ( buf[ptr] == 0x00 ) break;
 
     mdx->haspdx=FLAG_TRUE;
-    mdx->pdx_name[i++] = buf[ptr++];
-    if ( strcasecmp( ".pdx", (char *)(buf+ptr-1) )==0 ) j=1;
-    if ( strcasecmp( ".PDX", (char *)(buf+ptr-1) )==0 ) j=1;
+    mdx->pdx_name[i++] = buf[ptr++];  /* warning! this text is SJIS */
     if ( i>= MDX_MAX_PDX_FILENAME_LENGTH ) i--;
     if ( ptr > mdx->length ) goto error_end;
-  }
-  if ( mdx->haspdx==FLAG_TRUE && j==0 ) {
-    mdx->pdx_name[i+0] = '.';
-    mdx->pdx_name[i+1] = 'p';
-    mdx->pdx_name[i+2] = 'd';
-    mdx->pdx_name[i+3] = 'x';
   }
 
   /* get voice data offset */
@@ -192,7 +183,6 @@ MDX_DATA *mdx_open_mdx( char *name ) {
       (unsigned int)buf[ptr+i*2+2+1] + mdx->base_pointer;
     if ( mdx->mml_data_offset[i] > mdx->length ) goto error_end;
   }
-
 
   /* init. configuration */
 

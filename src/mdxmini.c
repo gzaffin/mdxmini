@@ -38,7 +38,7 @@ extern bool isLikelyUTF16(const char *str);
 
 #include "mdxmini.h"
 #include "class.h"
-#define DEBUG
+
 #ifdef USE_NLG
 
 #include "nlg.h"
@@ -438,6 +438,7 @@ static unsigned char* _load_pdx_data(char* name, long* out_length)
         int utf16Len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, name, -1, NULL, 0);
         wchar_t *utf16 = (wchar_t *)malloc(utf16Len * sizeof(wchar_t));
         MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, name, -1, utf16, utf16Len);
+        wprintf(L"Filename wchar_t : %s\n", utf16);
 
         fp = _wfopen(utf16, L"rb"); // Write mode, UTF-16 encoding
         free(utf16);
@@ -606,7 +607,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 #else // USE_ICONV
   sjis_to_utf8(mdx->pdx_name, (pdx_name_len + 1), pdx_iconv_name, 1024);
 
-#ifdef DEBUG
+//#ifdef DEBUG
 
 #ifdef _MSC_VER
   UINT oldCodePage;
@@ -625,7 +626,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 
 #endif // _MSC_VER
 
-#endif // DEBUG
+//#endif // DEBUG
 
 #endif // USE_ICONV
 
@@ -661,6 +662,27 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
     strcat( buf, pdx_iconv_name );
     strcat( buf, ".PDX" );
   }
+//#ifdef DEBUG
+
+#ifdef _MSC_VER
+  oldCodePage = GetConsoleOutputCP();
+  if (!SetConsoleOutputCP(65001)) {
+      printf("error\n");
+  }
+  printf("PDX File : ");
+  fwrite(buf, 1, strlen(buf) + 1, stdout);
+  printf("\n");
+  fflush(stdout);
+
+  SetConsoleOutputCP(oldCodePage);
+
+#else // _MSC_VER
+  printf("PDX File : %s\n", buf);
+
+#endif // _MSC_VER
+
+//#endif // DEBUG
+
   pdx=_open_pdx( buf );
 
   if (NULL == pdx)
@@ -677,11 +699,36 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
       goto no_pdx_file;
     }
  
+//#ifdef DEBUG
+
+#ifdef _MSC_VER
+    oldCodePage = GetConsoleOutputCP();
+    if (!SetConsoleOutputCP(65001)) {
+        printf("error\n");
+    }
+    printf("PDX File : ");
+    fwrite(buf, 1, strlen(buf) + 1, stdout);
+    printf("\n");
+    fflush(stdout);
+
+    SetConsoleOutputCP(oldCodePage);
+
+#else // _MSC_VER
+    printf("PDX File : %s\n", buf);
+
+#endif // _MSC_VER
+
+//#endif // DEBUG
+
     pdx=_open_pdx( buf );
     if ( NULL != pdx )
     {
       goto get_pdx_file;
     }
+  }
+  else
+  {
+    goto get_pdx_file;
   }
 
   if (NULL == pdx)
@@ -717,6 +764,28 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
       strcat( buf, pdx_iconv_name );
       strcat( buf, ".PDX" );
     }
+
+//#ifdef DEBUG
+
+#ifdef _MSC_VER
+    oldCodePage = GetConsoleOutputCP();
+    if (!SetConsoleOutputCP(65001)) {
+        printf("error\n");
+    }
+    printf("PDX File : ");
+    fwrite(buf, 1, strlen(buf) + 1, stdout);
+    printf("\n");
+    fflush(stdout);
+
+    SetConsoleOutputCP(oldCodePage);
+
+#else // _MSC_VER
+    printf("PDX File : %s\n", buf);
+
+#endif // _MSC_VER
+
+//#endif // DEBUG
+
     pdx=_open_pdx( buf );
 
     if ( NULL != pdx )
@@ -737,6 +806,27 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
           goto no_pdx_file;
       }
  
+//#ifdef DEBUG
+
+#ifdef _MSC_VER
+      oldCodePage = GetConsoleOutputCP();
+      if (!SetConsoleOutputCP(65001)) {
+          printf("error\n");
+      }
+      printf("PDX File : ");
+      fwrite(buf, 1, strlen(buf) + 1, stdout);
+      printf("\n");
+      fflush(stdout);
+
+      SetConsoleOutputCP(oldCodePage);
+
+#else // _MSC_VER
+      printf("PDX File : %s\n", buf);
+
+#endif // _MSC_VER
+
+//#endif // DEBUG
+
       pdx=_open_pdx( buf );
       if ( NULL != pdx )
       {
@@ -747,6 +837,10 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
           goto no_pdx_file;
       }
     }
+  }
+  else
+  {
+    goto get_pdx_file;
   }
 
   no_pdx_file:
