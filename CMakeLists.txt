@@ -1,21 +1,29 @@
+#### mdxmini ####
 if(COMMAND cmake_policy)
 	cmake_policy(SET CMP0003 NEW)
-endif(COMMAND cmake_policy)
-
-project(mdxmini)
+endif()
 
 if(MSVC OR MINGW)
-	cmake_minimum_required(VERSION 3.10)
+	cmake_minimum_required(VERSION 3.12)
 endif()
 
 if(UNIX OR APPLE)
 	cmake_minimum_required(VERSION 3.0.2)
 endif()
 
+project(mdxmini)
+
 if(MSVC)
 	find_package(SDL2 CONFIG REQUIRED)
-#	find_package(Iconv REQUIRED)
-#	add_definitions("-D USE_ICONV")
+	find_package(Iconv REQUIRED)
+	add_definitions("/DUSE_ICONV")
+
+	if(NOT MSVC_VERSION LESS 1400)
+		# Note: CMake 3.12 and up have add_compile_options()
+		add_definitions("/D_CRT_SECURE_NO_WARNINGS")
+	endif()
+
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Wall")
 endif()
 if(UNIX)
 	find_package(PkgConfig REQUIRED)
@@ -29,19 +37,17 @@ if(APPLE OR MINGW)
 	add_definitions("-D USE_ICONV")
 endif()
 
-add_subdirectory(src)
-
-file(GLOB SOURCES nlg.c sdlplay.c)
-
 if(MSVC OR UNIX OR MINGW OR APPLE)
 	include_directories(src)
 endif()
 
-add_executable(mdxplay EXCLUDE_FROM_ALL ${SOURCES})
+add_subdirectory(src)
+
+add_executable(mdxplay nlg.c sdlplay.c)
 
 if(MSVC)
-#	target_link_libraries(mdxplay PRIVATE mdxmini SDL2::SDL2 SDL2::SDL2main Iconv::Iconv)
-	target_link_libraries(mdxplay PRIVATE mdxmini SDL2::SDL2 SDL2::SDL2main)
+	target_link_libraries(mdxplay PRIVATE mdxmini SDL2::SDL2 SDL2::SDL2main Iconv::Iconv)
+#	target_link_libraries(mdxplay PRIVATE mdxmini SDL2::SDL2 SDL2::SDL2main)
 endif()
 if(UNIX)
 	target_link_libraries(mdxplay PRIVATE mdxmini m ${SDL2_LIBRARIES})

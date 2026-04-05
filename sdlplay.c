@@ -12,6 +12,7 @@
 
 #ifdef _MSC_VER
 #include <SDL.h>
+#include "getopt.h"
 
 #endif // _MSC_VER
 
@@ -19,10 +20,9 @@
 #include <SDL.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <getopt.h>
 
 #endif // __GNUC__
-
-#include "getopt.h"
 
 #ifdef USE_ICONV
 #include <iconv.h>
@@ -47,7 +47,7 @@ bool isLikelyUTF16(const char *str);
 
 #endif // DEBUG
 
-NLGCTX *nlgctx;
+extern NLGCTX *nlgctx;
 
 #define MDXMINI_VERSION __DATE__
 
@@ -684,11 +684,16 @@ int audio_main(int argc, char *argv[])
     int len = -1;
 
 #ifdef _WIN32
+    SetConsoleOutputCP(65001);	// Set Windows Console output to UTF-8
+    SetConsoleCP(65001);	// Set input to UTF-8 as well
+
 #if !defined (__MINGW32__)
     (void)freopen("CON", "wt", stdout);
     (void)freopen("CON", "wt", stderr);
-#endif
-#endif
+
+#endif // !defined (__MINGW32__)
+
+#endif // _WIN32
 
     audio_sdl_init();
     signal(SIGINT, audio_sig_handle);

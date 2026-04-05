@@ -42,7 +42,7 @@ extern bool isLikelyUTF16(const char *str);
 #ifdef USE_NLG
 
 #include "nlg.h"
-extern NLGCTX *nlgctx;
+NLGCTX *nlgctx;
 
 #endif // USE_NLG
 
@@ -665,6 +665,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 //#ifdef DEBUG
 
 #ifdef _MSC_VER
+  UINT oldCodePage;
   oldCodePage = GetConsoleOutputCP();
   if (!SetConsoleOutputCP(65001)) {
       printf("error\n");
@@ -702,6 +703,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 //#ifdef DEBUG
 
 #ifdef _MSC_VER
+    /*UINT oldCodePage;*/
     oldCodePage = GetConsoleOutputCP();
     if (!SetConsoleOutputCP(65001)) {
         printf("error\n");
@@ -768,6 +770,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 //#ifdef DEBUG
 
 #ifdef _MSC_VER
+    /*UINT oldCodePage;*/
     oldCodePage = GetConsoleOutputCP();
     if (!SetConsoleOutputCP(65001)) {
         printf("error\n");
@@ -809,6 +812,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 //#ifdef DEBUG
 
 #ifdef _MSC_VER
+      /*UINT oldCodePage;*/
       oldCodePage = GetConsoleOutputCP();
       if (!SetConsoleOutputCP(65001)) {
           printf("error\n");
