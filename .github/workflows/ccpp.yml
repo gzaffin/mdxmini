@@ -25,7 +25,7 @@ jobs:
         git clone https://github.com/Microsoft/vcpkg.git
         cd vcpkg
         .\bootstrap-vcpkg.bat
-        .\vcpkg.exe install iconv:x64-windows sdl2:x64-windows vcpkg-cmake-config:x64-windows vcpkg-cmake:x64-windows
+        .\vcpkg.exe install libiconv:x64-windows sdl2:x64-windows vcpkg-cmake-config:x64-windows vcpkg-cmake:x64-windows
         popd
 
     - name: Configure [Linux]
