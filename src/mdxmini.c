@@ -504,11 +504,11 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   PDX_DATA* pdx = NULL;
 
   mdx->pdx_enable = FLAG_FALSE;
-  if ( mdx->haspdx == FLAG_FALSE )
+  if (FLAG_FALSE == mdx->haspdx)
   {
     goto no_pdx_file;
   }
-  if ( NULL == mdx->pdx_name )
+  if ('\0' == mdx->pdx_name[0])
   {
     goto no_pdx_file;
   }
