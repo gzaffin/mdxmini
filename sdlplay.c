@@ -92,7 +92,7 @@ static int audio_poll_event(void);
 #ifdef USE_ICONV
 extern int conv_with_iconv(char *origin, char *locale, const char *fromcode);
 
-#endif
+#endif // USE_ICONV
 static void audio_disp_title(t_mdxmini *data);
 //static int split_dir(const char *file , char *dir);
 static void audio_loop(t_mdxmini *data, int freq, int len, int nloops);
@@ -273,7 +273,7 @@ static void audio_disp_title(t_mdxmini *data)
         }
         else
         {
-            sjis_to_utf8(title_orig, (title_orig_len + 1), title_locale, 1024);
+            ;
         }
     }
 
@@ -969,18 +969,28 @@ int audio_main(int argc, char *argv[])
             }
             else
             {
-                if ('\0' != pdx_lcl_name[0])
-                {
-                    sjis_to_utf8(pdx_lcl_name, (pdx_lcl_name_len + 1), pdx_lcl_iconv_name, 1024);
-                    printf("PDX File : %s\n", pdx_lcl_iconv_name);
-                }
+                ;
             }
 
 #else // USE_ICONV
             if ('\0' != pdx_lcl_name[0])
             {
                 sjis_to_utf8(pdx_lcl_name, (pdx_lcl_name_len + 1), pdx_lcl_iconv_name, 1024);
+#ifdef _MSC_VER
+                UINT oldCodePage;
+                oldCodePage = GetConsoleOutputCP();
+                if (!SetConsoleOutputCP(65001)) {
+                    printf("error\n");
+                }
+                printf("PDX File : ");
+                fwrite(pdx_lcl_iconv_name, 1, strlen(pdx_lcl_iconv_name) + 1, stdout);
+                printf("\n");
+
+                SetConsoleOutputCP(oldCodePage);
+
+#else // _MSC_VER
                 printf("PDX File : %s\n", pdx_lcl_iconv_name);
+#endif // _MSC_VER
             }
 
 #endif // USE_ICONV

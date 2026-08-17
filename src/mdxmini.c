@@ -577,37 +577,13 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
             }
             else
             {
-                if ('\0' != mdx->pdx_name[0])
-                {
-                    sjis_to_utf8(mdx->pdx_name, (pdx_name_len + 1), pdx_iconv_name, 1024);
-
-#ifdef DEBUG
-
-#ifdef _MSC_VER
-                    UINT oldCodePage;
-                    oldCodePage = GetConsoleOutputCP();
-                    if (!SetConsoleOutputCP(65001)) {
-                        printf("error\n");
-                    }
-                    printf("PDX File sjis_to_utf8 : ");
-                    fwrite(pdx_iconv_name, 1, strlen(pdx_iconv_name) + 1, stdout);
-                    printf("\n");
-
-                    SetConsoleOutputCP(oldCodePage);
-
-#else // _MSC_VER
-                    printf("PDX File sjis_to_utf8 : %s\n", pdx_iconv_name);
-
-#endif // _MSC_VER
-
-#endif // DEBUG
-                }
+                ;
             }
 
 #else // USE_ICONV
   sjis_to_utf8(mdx->pdx_name, (pdx_name_len + 1), pdx_iconv_name, 1024);
 
-//#ifdef DEBUG
+#ifdef DEBUG
 
 #ifdef _MSC_VER
   UINT oldCodePage;
@@ -626,7 +602,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 
 #endif // _MSC_VER
 
-//#endif // DEBUG
+#endif // DEBUG
 
 #endif // USE_ICONV
 
