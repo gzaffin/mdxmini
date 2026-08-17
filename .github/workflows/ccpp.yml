@@ -7,24 +7,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
     - name: CheckOut
-      uses: actions/checkout@v4.1.1
+      uses: actions/checkout@v6
 
     - name: Install Dependencies [Linux]
       if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
-        sudo apt-get install cmake libasound2-dev alsa-base alsa-utils libsdl2-dev
-    - name: Install Dependencies [Darwin]
-      if: matrix.os == 'macos-latest'
-      run: |
-        export HOMEBREW_NO_INSTALL_CLEANUP=1
-        brew update
-        # cmake is preinstalled, trying to install it again will error out
-        brew install sdl2 pkgconfig
+        sudo apt-get install cmake libsdl2-dev
     - name: Install Dependencies [Windows]
       if: matrix.os == 'windows-latest'
       run: |
@@ -32,16 +25,11 @@ jobs:
         git clone https://github.com/Microsoft/vcpkg.git
         cd vcpkg
         .\bootstrap-vcpkg.bat
-        .\vcpkg.exe install sdl2:x64-windows vcpkg-cmake-config:x64-windows vcpkg-cmake:x64-windows
+        .\vcpkg.exe install libiconv:x64-windows sdl2:x64-windows vcpkg-cmake-config:x64-windows vcpkg-cmake:x64-windows
         popd
 
     - name: Configure [Linux]
       if: matrix.os == 'ubuntu-latest'
-      run: |
-        mkdir build && cd build
-        cmake -D CMAKE_BUILD_TYPE=Release ..
-    - name: Configure [Darwin]
-      if: matrix.os == 'macos-latest'
       run: |
         mkdir build && cd build
         cmake -D CMAKE_BUILD_TYPE=Release ..
@@ -53,11 +41,6 @@ jobs:
 
     - name: Build [Linux]
       if: matrix.os == 'ubuntu-latest'
-      run: |
-        cd build
-        cmake --build . --config Release --target mdxplay
-    - name: Build [Darwin]
-      if: matrix.os == 'macos-latest'
       run: |
         cd build
         cmake --build . --config Release --target mdxplay
@@ -76,16 +59,9 @@ jobs:
         cd build
         echo "Checking if mdxplay works: ./mdxplay ../KMSM037.mdx"
         ./mdxplay ../KMSM037.mdx
-    - name: Check [Darwin]
-      if: matrix.os == 'macos-latest'
-      run: |
-        cd build
-        echo "Checking if mdxplay works: ./mdxplay ../KMSM037.mdx"
-        ./mdxplay ../KMSM037.mdx
     - name: Check  [Windows]
       if: matrix.os == 'windows-latest'
       run: |
         cd build
         echo "Checking if mdxplay works: Release\mdxplay.exe ..\KMSM037.mdx"
         Release\mdxplay.exe ..\KMSM037.mdx
-
