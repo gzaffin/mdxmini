@@ -51,7 +51,7 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         cd build
-        msbuild mdxmini.sln -t:rebuild -property:Configuration=Release
+        msbuild mdxmini.slnx -t:rebuild -property:Configuration=Release
 
     - name: Check [Linux]
       if: matrix.os == 'ubuntu-latest'
