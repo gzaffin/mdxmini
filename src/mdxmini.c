@@ -630,6 +630,9 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   {
     if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
     {
+      a[1] = 'P';
+      a[2] = 'D';
+      a[3] = 'X';
       strcat( buf, pdx_iconv_name );
     }
   }
@@ -665,7 +668,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   if (NULL == pdx)
   {
     a=strrchr( buf, '.' );
-    if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
+    if ( (a != NULL) && ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
     {
       a[1] = 'p';
       a[2] = 'd';
