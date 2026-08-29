@@ -54,12 +54,15 @@ NLGCTX *nlgctx;
 #include "sjis.h"
 #include "utf8.h"
 
+#if defined __GNUC__
+#include <wchar.h>
+#include <dirent.h>
+#include <locale.h>
+
+#endif // defined __GNUC__
+
 /* ------------------------------------------------------------------ */
 #define PATH_BUF_SIZE 1024
-
-static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath);
-static int self_construct(songdata* songdata);
-static void self_destroy(songdata* songdata);
 
 /* ------------------------------------------------------------------ */
 // static char *command_name;
@@ -94,9 +97,132 @@ static float reverb_width;
 static float reverb_dry;
 static float reverb_wet;
 
-
+/* ------------------------------------------------------------------ */
 extern void ym2151_set_logging( int flag, songdata * );
 
+/* ------------------------------------------------------------------ */
+static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath);
+static int self_construct(songdata* songdata);
+static void self_destroy(songdata* songdata);
+
+#if defined __GNUC__
+int find_in_folder(char * fileString, char * folderString);
+int compare_utf8_code_point_by_code_point(const char *str1, const char *str2);
+
+int compare_utf8_code_point_by_code_point(const char *str1, const char *str2) {
+    mbstate_t state1 = { 0, };
+    mbstate_t state2 = { 0, };
+
+    wchar_t wc1, wc2;
+    size_t len1, len2;
+
+    const char *p1 = str1;
+    const char *p2 = str2;
+
+    while (1) {
+        len1 = mbrtowc(&wc1, p1, MB_CUR_MAX, &state1);
+        len2 = mbrtowc(&wc2, p2, MB_CUR_MAX, &state2);
+
+        if ((len1 == (size_t)-1) || (len1 == (size_t)-2) \
+                || \
+                (len2 == (size_t)-1) || (len2 == (size_t)-2)) {
+            fprintf(stderr, "Error: UTF-8 string is not valid.\n");
+            return -2;
+        }
+
+        if ((len1 == 0) && (len2 == 0)) {
+            return 0; /* strings match */
+        }
+
+        wchar_t wc1_second_opinion = wc1;
+        if ((wc1_second_opinion >= 65) && (wc1_second_opinion <= 90)) {
+            wc1_second_opinion += 32;
+        }
+        if ((wc1_second_opinion >= 97) && (wc1_second_opinion <= 122)) {
+            wc1_second_opinion -= 32;
+        }
+        if ((wc1 != wc2) && (wc1_second_opinion != wc2)) {
+            return (wc1 < wc2) ? -1 : 1;
+        }
+
+        /* pointer moves */
+        p1 += len1;
+        p2 += len2;
+    }
+}
+
+int find_in_folder(char * fileString, char * folderString) {
+    setlocale(LC_ALL, "");
+
+    const char *s1 = fileString;
+    const char *s2 = NULL;
+
+    DIR *folder_dir = opendir(folderString);
+
+    if (NULL == folder_dir) {
+#ifdef DEBUG
+        fprintf(stderr, "Error: folder %s cannot be opened.\n", folderString);
+
+#endif // defined(DEBUG)
+
+        return 2;
+    }
+
+    struct dirent *file_in_folder;
+
+#ifdef DEBUG
+    printf("In folder %s :\n", folderString);
+    printf(">>>\n");
+
+    while ((file_in_folder = readdir(folder_dir)) != NULL) {
+        printf("%s\n", file_in_folder->d_name);
+    }
+
+    closedir(folder_dir);
+
+    folder_dir = opendir(folderString);
+
+#endif // defined(DEBUG)
+
+    int chk_result;
+    while ((file_in_folder = readdir(folder_dir)) != NULL) {
+        s2 = (const char *)file_in_folder->d_name;
+
+        chk_result = compare_utf8_code_point_by_code_point(s1, s2);
+
+        if (chk_result == 0) {
+            int folderString_len = 0;
+            while ('\0' != folderString[folderString_len])
+            {
+                folderString_len++;
+            }
+            strncat( folderString, s2, PATH_BUF_SIZE-(folderString_len+1) );
+#ifdef DEBUG
+            printf("String %s (%s) matches %s .\n", s2, folderString, s1);
+
+#endif // defined(DEBUG)
+
+            break;
+        } else if (chk_result < 0) {
+#ifdef DEBUG
+            printf("First string %s is before second string %s .\n", s1, s2);
+
+#endif // defined(DEBUG)
+
+        } else {
+#ifdef DEBUG
+            printf("First string %s is after second string %s .\n", s1, s2);
+
+#endif // defined(DEBUG)
+
+        }
+    }
+
+    closedir(folder_dir);
+
+    return chk_result;
+}
+#endif // defined __GNUC__
 
 /* ------------------------------------------------------------------ */
 
@@ -608,7 +734,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 
   /* mdx file path directory */
 
-  memset(buf, 0, PATH_BUF_SIZE);
+  buf[0] = '\0';
   strncpy( buf, mdxpath, PATH_BUF_SIZE-1 );
 #ifdef _MSC_VER
   if ( (a=strrchr( buf, '\\' )) != NULL )
@@ -638,13 +764,13 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   }
   else
   {
+    strcat( pdx_iconv_name, ".PDX" );
     strcat( buf, pdx_iconv_name );
-    strcat( buf, ".PDX" );
   }
-//#ifdef DEBUG
+#ifdef DEBUG
 
 #ifdef _MSC_VER
-  UINT oldCodePage;
+  /*UINT oldCodePage;*/
   oldCodePage = GetConsoleOutputCP();
   if (!SetConsoleOutputCP(65001)) {
       printf("error\n");
@@ -657,15 +783,15 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   SetConsoleOutputCP(oldCodePage);
 
 #else // _MSC_VER
+  printf("PDX File : %s\n", pdx_iconv_name);
   printf("PDX File : %s\n", buf);
 
 #endif // _MSC_VER
 
-//#endif // DEBUG
+#endif // DEBUG
 
   pdx=_open_pdx( buf );
-
-  if (NULL == pdx)
+  if ( NULL == pdx )
   {
     a=strrchr( buf, '.' );
     if ( (a != NULL) && ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
@@ -679,7 +805,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
       goto no_pdx_file;
     }
  
-//#ifdef DEBUG
+#ifdef DEBUG
 
 #ifdef _MSC_VER
     /*UINT oldCodePage;*/
@@ -699,7 +825,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 
 #endif // _MSC_VER
 
-//#endif // DEBUG
+#endif // DEBUG
 
     pdx=_open_pdx( buf );
     if ( NULL != pdx )
@@ -711,6 +837,40 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   {
     goto get_pdx_file;
   }
+
+#if defined __GNUC__
+  if (NULL == pdx)
+  {
+    buf[0] = '\0';
+    strncpy( buf, mdxpath, PATH_BUF_SIZE-1 );
+    if ( (a=strrchr( buf, '/' )) != NULL )
+    {
+      *(a+1)='\0';
+    }
+    else
+    {
+      buf[0] = '.';
+      buf[1] = '/';
+      buf[2] = 0;
+    }
+    if (0 == find_in_folder(pdx_iconv_name, buf))
+    {
+      pdx=_open_pdx( buf );
+      if ( NULL != pdx )
+      {
+
+//#ifdef DEBUG
+
+        printf("PDX File : %s (%s) \n", buf, pdx_iconv_name);
+
+//#endif // DEBUG
+
+        goto get_pdx_file;
+      }
+    }
+  }
+
+#endif // defined __GNUC__
 
   if (NULL == pdx)
   {
@@ -737,16 +897,19 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
     {
       if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
       {
-        strcat( buf, pdx_iconv_name );
+          a[1] = 'P';
+          a[2] = 'D';
+          a[3] = 'X';
+          strcat( buf, pdx_iconv_name );
       }
     }
     else
     {
-      strcat( buf, pdx_iconv_name );
-      strcat( buf, ".PDX" );
+        strcat( pdx_iconv_name, ".PDX" );
+        strcat( buf, pdx_iconv_name );
     }
 
-//#ifdef DEBUG
+#ifdef DEBUG
 
 #ifdef _MSC_VER
     /*UINT oldCodePage;*/
@@ -766,65 +929,88 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 
 #endif // _MSC_VER
 
-//#endif // DEBUG
+#endif // DEBUG
 
     pdx=_open_pdx( buf );
-
     if ( NULL != pdx )
     {
       goto get_pdx_file;
     }
     else
     {
-      a=strrchr( buf, '.' );
-      if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
-      {
-          a[1] = 'p';
-          a[2] = 'd';
-          a[3] = 'x';
-      }
-      else
-      {
-          goto no_pdx_file;
-      }
- 
-//#ifdef DEBUG
+        a = strrchr(buf, '.');
+        if (((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0'))
+        {
+            a[1] = 'p';
+            a[2] = 'd';
+            a[3] = 'x';
+        }
+        else
+        {
+            goto no_pdx_file;
+        }
+
+#ifdef DEBUG
 
 #ifdef _MSC_VER
-      /*UINT oldCodePage;*/
-      oldCodePage = GetConsoleOutputCP();
-      if (!SetConsoleOutputCP(65001)) {
-          printf("error\n");
-      }
-      printf("PDX File : ");
-      fwrite(buf, 1, strlen(buf) + 1, stdout);
-      printf("\n");
-      fflush(stdout);
+        /*UINT oldCodePage;*/
+        oldCodePage = GetConsoleOutputCP();
+        if (!SetConsoleOutputCP(65001)) {
+            printf("error\n");
+        }
+        printf("PDX File : ");
+        fwrite(buf, 1, strlen(buf) + 1, stdout);
+        printf("\n");
+        fflush(stdout);
 
-      SetConsoleOutputCP(oldCodePage);
+        SetConsoleOutputCP(oldCodePage);
 
 #else // _MSC_VER
-      printf("PDX File : %s\n", buf);
+        printf("PDX File : %s\n", buf);
 
 #endif // _MSC_VER
 
-//#endif // DEBUG
+#endif // DEBUG
 
-      pdx=_open_pdx( buf );
-      if ( NULL != pdx )
-      {
-          goto get_pdx_file;
-      }
-      else
-      {
-          goto no_pdx_file;
-      }
+        pdx = _open_pdx(buf);
+        if ( NULL != pdx )
+        {
+            goto get_pdx_file;
+        }
     }
   }
   else
   {
     goto get_pdx_file;
   }
+
+#if defined __GNUC__
+    if (NULL == pdx)
+    {
+        buf[0] = '\0';
+        // specified pdx directory
+        strcpy(buf, mdx->pdx_dir);
+        if ((a = strrchr(buf, '/')) != NULL)
+        {
+            *(a + 1) = '\0';
+        }
+        else
+        {
+            buf[0] = '.';
+            buf[1] = '/';
+            buf[2] = 0;
+        }
+        if (0 == find_in_folder(pdx_iconv_name, buf))
+        {
+            pdx = _open_pdx(buf);
+            if ( NULL != pdx )
+            {
+                goto get_pdx_file;
+            }
+        }
+    }
+
+#endif // defined __GNUC__
 
   no_pdx_file:
     goto unget_pdx_file;
