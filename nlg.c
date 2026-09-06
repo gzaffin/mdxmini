@@ -12,6 +12,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "mdxmini.h"
+
 #include "nlg.h"
 
 #define NLG_VER (110)
