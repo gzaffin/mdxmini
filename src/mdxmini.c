@@ -32,6 +32,7 @@ extern bool isLikelyUTF16(const char *str);
 #endif // _MSC_VER
 
 #include <stdio.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -104,6 +105,7 @@ extern void ym2151_set_logging( int flag, songdata * );
 static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath);
 static int self_construct(songdata* songdata);
 static void self_destroy(songdata* songdata);
+static int get_utf8_char_len(const char* str, unsigned long* code_point);
 
 #if defined __GNUC__
 int find_in_folder(char * fileString, char * folderString);
@@ -152,7 +154,7 @@ int compare_utf8_code_point_by_code_point(const char *str1, const char *str2) {
 }
 
 int find_in_folder(char * fileString, char * folderString) {
-    setlocale(LC_ALL, "");
+    /*setlocale(LC_ALL, "");*/ /* moved to sdlplay */
 
     const char *s1 = fileString;
     const char *s2 = NULL;
@@ -737,10 +739,10 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   buf[0] = '\0';
   strncpy( buf, mdxpath, PATH_BUF_SIZE-1 );
 #ifdef _MSC_VER
-  if ( (a=strrchr( buf, '\\' )) != NULL )
+  if ( (a=utf8_strrchr( buf, '\\' )) != NULL )
 
 #else // _MSC_VER
-  if ( (a=strrchr( buf, '/' )) != NULL )
+  if ( (a=utf8_strrchr( buf, '/' )) != NULL )
 
 #endif // _MSC_VER
   {
@@ -751,14 +753,17 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
     buf[0] = 0;
   }
 
-  a=strrchr( pdx_iconv_name, '.' );
+  a=utf8_strrchr( pdx_iconv_name, '.' );
   if (a != NULL)
   {
-    if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
+    if ( ((a[1] == 'P') || (a[1] == 'p')) \
+        && \
+        ((a[2] == 'D') || (a[2] == 'd')) \
+        && \
+        ((a[3] == 'X') || (a[3] == 'x')) \
+        && \
+        (a[4] == '\0') )
     {
-      a[1] = 'P';
-      a[2] = 'D';
-      a[3] = 'X';
       strcat( buf, pdx_iconv_name );
     }
   }
@@ -791,49 +796,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 #endif // DEBUG
 
   pdx=_open_pdx( buf );
-  if ( NULL == pdx )
-  {
-    a=strrchr( buf, '.' );
-    if ( (a != NULL) && ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
-    {
-      a[1] = 'p';
-      a[2] = 'd';
-      a[3] = 'x';
-    }
-    else
-    {
-      goto no_pdx_file;
-    }
- 
-#ifdef DEBUG
-
-#ifdef _MSC_VER
-    /*UINT oldCodePage;*/
-    oldCodePage = GetConsoleOutputCP();
-    if (!SetConsoleOutputCP(65001)) {
-        printf("error\n");
-    }
-    printf("PDX File : ");
-    fwrite(buf, 1, strlen(buf) + 1, stdout);
-    printf("\n");
-    fflush(stdout);
-
-    SetConsoleOutputCP(oldCodePage);
-
-#else // _MSC_VER
-    printf("PDX File : %s\n", buf);
-
-#endif // _MSC_VER
-
-#endif // DEBUG
-
-    pdx=_open_pdx( buf );
-    if ( NULL != pdx )
-    {
-      goto get_pdx_file;
-    }
-  }
-  else
+  if ( NULL != pdx )
   {
     goto get_pdx_file;
   }
@@ -843,7 +806,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   {
     buf[0] = '\0';
     strncpy( buf, mdxpath, PATH_BUF_SIZE-1 );
-    if ( (a=strrchr( buf, '/' )) != NULL )
+    if ( (a=utf8_strrchr( buf, '/' )) != NULL )
     {
       *(a+1)='\0';
     }
@@ -859,11 +822,11 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
       if ( NULL != pdx )
       {
 
-//#ifdef DEBUG
+#ifdef DEBUG
 
         printf("PDX File : %s (%s) \n", buf, pdx_iconv_name);
 
-//#endif // DEBUG
+#endif // DEBUG
 
         goto get_pdx_file;
       }
@@ -874,143 +837,100 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 
   if (NULL == pdx)
   {
-    buf[0] = '\0';
-    // specified pdx directory
-    strcpy( buf, mdx->pdx_dir );
+      buf[0] = '\0';
+      // specified pdx directory
+      strcpy(buf, mdx->pdx_dir);
 
-    int len = (int)strlen( buf );
+      int len = (int)strlen(buf);
 #ifdef _MSC_VER
-    if (len > 0 && buf [ len - 1 ] != '\\' )
-    {
-      strcat( buf, "\\" );
-    }
-
-#else // _MSC_VER
-    if (len > 0 && buf [ len - 1 ] != '/' )
-    {
-      strcat( buf, "/" );
-    }
-
-#endif // _MSC_VER
-    a=strrchr( pdx_iconv_name, '.' );
-    if (a != NULL)
-    {
-      if ( ((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0') )
+      if (len > 0 && buf[len - 1] != '\\')
       {
-          a[1] = 'P';
-          a[2] = 'D';
-          a[3] = 'X';
-          strcat( buf, pdx_iconv_name );
+          strcat(buf, "\\");
       }
-    }
-    else
-    {
-        strcat( pdx_iconv_name, ".PDX" );
-        strcat( buf, pdx_iconv_name );
-    }
+
+#else // _MSC_VER
+      if (len > 0 && buf[len - 1] != '/')
+      {
+          strcat(buf, "/");
+      }
+
+#endif // _MSC_VER
+      a = utf8_strrchr(pdx_iconv_name, '.');
+      if (a != NULL)
+      {
+          if (((a[1] == 'P') || (a[1] == 'p')) \
+              && \
+              ((a[2] == 'D') || (a[2] == 'd')) \
+              && \
+              ((a[3] == 'X') || (a[3] == 'x')) \
+              && \
+              (a[4] == '\0'))
+          {
+              strcat(buf, pdx_iconv_name);
+          }
+      }
+      else
+      {
+          strcat(pdx_iconv_name, ".PDX");
+          strcat(buf, pdx_iconv_name);
+      }
 
 #ifdef DEBUG
 
 #ifdef _MSC_VER
-    /*UINT oldCodePage;*/
-    oldCodePage = GetConsoleOutputCP();
-    if (!SetConsoleOutputCP(65001)) {
-        printf("error\n");
-    }
-    printf("PDX File : ");
-    fwrite(buf, 1, strlen(buf) + 1, stdout);
-    printf("\n");
-    fflush(stdout);
+      /*UINT oldCodePage;*/
+      oldCodePage = GetConsoleOutputCP();
+      if (!SetConsoleOutputCP(65001)) {
+          printf("error\n");
+      }
+      printf("PDX File : ");
+      fwrite(buf, 1, strlen(buf) + 1, stdout);
+      printf("\n");
+      fflush(stdout);
 
-    SetConsoleOutputCP(oldCodePage);
+      SetConsoleOutputCP(oldCodePage);
 
 #else // _MSC_VER
-    printf("PDX File : %s\n", buf);
+      printf("PDX File : %s\n", buf);
 
 #endif // _MSC_VER
 
 #endif // DEBUG
 
-    pdx=_open_pdx( buf );
-    if ( NULL != pdx )
-    {
-      goto get_pdx_file;
-    }
-    else
-    {
-        a = strrchr(buf, '.');
-        if (((toupper(a[1])) == 'P') && ((toupper(a[2])) == 'D') && ((toupper(a[3])) == 'X') && ((a[4]) == '\0'))
-        {
-            a[1] = 'p';
-            a[2] = 'd';
-            a[3] = 'x';
-        }
-        else
-        {
-            goto no_pdx_file;
-        }
-
-#ifdef DEBUG
-
-#ifdef _MSC_VER
-        /*UINT oldCodePage;*/
-        oldCodePage = GetConsoleOutputCP();
-        if (!SetConsoleOutputCP(65001)) {
-            printf("error\n");
-        }
-        printf("PDX File : ");
-        fwrite(buf, 1, strlen(buf) + 1, stdout);
-        printf("\n");
-        fflush(stdout);
-
-        SetConsoleOutputCP(oldCodePage);
-
-#else // _MSC_VER
-        printf("PDX File : %s\n", buf);
-
-#endif // _MSC_VER
-
-#endif // DEBUG
-
-        pdx = _open_pdx(buf);
-        if ( NULL != pdx )
-        {
-            goto get_pdx_file;
-        }
-    }
-  }
-  else
-  {
-    goto get_pdx_file;
-  }
+      pdx = _open_pdx(buf);
+      if (NULL != pdx)
+      {
+          goto get_pdx_file;
+      }
 
 #if defined __GNUC__
-    if (NULL == pdx)
-    {
-        buf[0] = '\0';
-        // specified pdx directory
-        strcpy(buf, mdx->pdx_dir);
-        if ((a = strrchr(buf, '/')) != NULL)
-        {
-            *(a + 1) = '\0';
-        }
-        else
-        {
-            buf[0] = '.';
-            buf[1] = '/';
-            buf[2] = 0;
-        }
-        if (0 == find_in_folder(pdx_iconv_name, buf))
-        {
-            pdx = _open_pdx(buf);
-            if ( NULL != pdx )
-            {
-                goto get_pdx_file;
-            }
-        }
-    }
+      if (NULL == pdx)
+      {
+          buf[0] = '\0';
+          // specified pdx directory
+          strcpy(buf, mdx->pdx_dir);
+          if ((a = utf8_strrchr(buf, '/')) != NULL)
+          {
+              *(a + 1) = '\0';
+          }
+          else
+          {
+              buf[0] = '.';
+              buf[1] = '/';
+              buf[2] = 0;
+          }
+          if (0 == find_in_folder(pdx_iconv_name, buf))
+          {
+              pdx = _open_pdx(buf);
+              if (NULL != pdx)
+              {
+                  goto get_pdx_file;
+              }
+          }
+      }
 
 #endif // defined __GNUC__
+  }
 
   no_pdx_file:
     goto unget_pdx_file;
@@ -1159,3 +1079,75 @@ int conv_with_iconv(char *origin, char *locale, const char *fromcode)
 
 #endif // USE_ICONV
 
+// Helper function to decode a single UTF-8 character and return its byte length
+static int get_utf8_char_len(const char* str, unsigned long* code_point) {
+    unsigned char c = (unsigned char)*str;
+
+    if (c == '\0') {
+        *code_point = 0;
+        return 0;
+    }
+
+    // 1-byte ASCII (0xxxxxxx)
+    if ((c & 0x80) == 0) {
+        *code_point = c;
+        return 1;
+    }
+
+    // 2-byte sequence (110xxxxx 10xxxxxx)
+    if ((c & 0xE0) == 0xC0) {
+        if ((str[1] & 0xC0) != 0x80) return 1; // Malformed UTF-8
+        *code_point = ((c & 0x1F) << 6) | (str[1] & 0x3F);
+        return 2;
+    }
+
+    // 3-byte sequence (1110xxxx 10xxxxxx 10xxxxxx)
+    if ((c & 0xF0) == 0xE0) {
+        if ((str[1] & 0xC0) != 0x80 || (str[2] & 0xC0) != 0x80) return 1;
+        *code_point = ((c & 0x0F) << 12) | ((str[1] & 0x3F) << 6) | (str[2] & 0x3F);
+        return 3;
+    }
+
+    // 4-byte sequence (11110xxx 10xxxxxx 10xxxxxx 10xxxxxx)
+    if ((c & 0xF8) == 0xF0) {
+        if ((str[1] & 0xC0) != 0x80 || (str[2] & 0xC0) != 0x80 || (str[3] & 0xC0) != 0x80) return 1;
+        *code_point = ((c & 0x07) << 18) | ((str[1] & 0x3F) << 12) | ((str[2] & 0x3F) << 6) | (str[3] & 0x3F);
+        return 4;
+    }
+
+    return 1; // Malformed leading byte, skip it safely
+}
+
+// UTF-8 safe version of strrchr
+const char* utf8_strrchr(const char* str, unsigned long target_code_point) {
+    if (!str) return NULL;
+
+    const char* last_match = NULL;
+    unsigned long current_cp = 0;
+
+    // Handle the special case where target is the null terminator
+    if (target_code_point == 0) {
+        while (*str) {
+            unsigned long dummy;
+            int len = get_utf8_char_len(str, &dummy);
+            str += (len > 0) ? len : 1;
+        }
+        return str;
+    }
+
+    // Scan the string from left to right
+    while (*str != '\0') {
+        const char* char_start = str;
+        int len = get_utf8_char_len(str, &current_cp);
+
+        if (len == 0) break;
+
+        if (current_cp == target_code_point) {
+            last_match = char_start; // Record the beginning of the multi-byte char
+        }
+
+        str += len; // Advance to the next character boundary
+    }
+
+    return last_match;
+}

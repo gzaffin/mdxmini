@@ -56,4 +56,5 @@ extern int conv_with_iconv(char *origin, char *locale, const char *fromcode);
 
 #endif // USE_ICONV
 
+const char* utf8_strrchr(const char* str, unsigned long target_code_point);
 #endif

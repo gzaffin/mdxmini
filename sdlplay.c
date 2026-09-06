@@ -890,7 +890,7 @@ int audio_main(int argc, char *argv[])
 
                 strcpy(nlgfile, playfile);
 
-                char *p = strrchr(nlgfile, '.');
+                char *p = utf8_strrchr(nlgfile, '.');
 
                 if (p)
                     strcpy(p,".NLG");
@@ -1105,6 +1105,8 @@ int wmain(int argc, wchar_t *argv[])
 #else // _MSC_VER
 int main(int argc, char *argv[])
 {
+    // Set the locale to support UTF-8 output in console
+    setlocale(LC_ALL, ".UTF8");
 
 #endif // _MSC_VER
     int ret = audio_main(argc, argv);

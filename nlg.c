@@ -195,7 +195,7 @@ NLGCTX *CreateNLG(const char *file)
 	}
     
     // パスが含まれている場合はファイル名のみを使用
-    name = strrchr(file, PATH_SEP);
+    name = utf8_strrchr(file, PATH_SEP);
     if (name)
         SetTitleNLG(ctx, name);
     else
