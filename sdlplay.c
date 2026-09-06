@@ -684,17 +684,14 @@ int audio_main(int argc, char *argv[])
     int nloops = 0;
     int len = -1;
 
-#ifdef _WIN32
+#ifdef _MSC_VER
     SetConsoleOutputCP(65001);	// Set Windows Console output to UTF-8
     SetConsoleCP(65001);	// Set input to UTF-8 as well
 
-#if !defined (__MINGW32__)
     (void)freopen("CON", "wt", stdout);
     (void)freopen("CON", "wt", stderr);
 
-#endif // !defined (__MINGW32__)
-
-#endif // _WIN32
+#endif // _MSC_VER
 
     audio_sdl_init();
     signal(SIGINT, audio_sig_handle);
@@ -725,63 +722,99 @@ int audio_main(int argc, char *argv[])
         argv_windows_ANSI[i] = ansi;
     }
 
-#endif // _MSC_VER
-
-#ifdef _MSC_VER
     while ((opt = getopt(argc, argv_windows_ANSI, "n:q:l:r:s:o:bpwhx")) != -1)
-
-#else // _MSC_VER
-    while ((opt = getopt(argc, argv, "n:q:l:r:s:o:bpwhx")) != -1)
-
-#endif // _MSC_VER
     {
         switch (opt)
         {
-            case 'n': // length
-                nloops = atoi(optarg);
-                break;
-            case 'q': // pcm path
-                pcmpath = optarg;
-                break;
-            case 'l': // length
-                len = atoi(optarg);
-                break;
-            case 'b': // log without path(no arguments)
-                nlg_log = NLG_SAMEPATH;
-                nlgfile = NULL;
-                nosound = 1;
-                break;
-            case 'r': // log with path
-                nlg_log = NLG_NORMAL;
-                nlgfile = optarg;
-                break;
-            case 'p': // no sound(no arguments)
-                nosound = 1;
-                break;
-            case 's': // rate
-                rate = atoi(optarg);
-                break;
-            case 'o': // output to wav file
-                wavfile = optarg;
-                break;
-            case 'w': // verbose mode(no arguments)
-                g_verbose = 1;
-                break;
-            case 'x': // view note mode(no arguments)
-                g_viewnote = 1;
-                break;
-            case 'h':
-            default:
-                usage();
-                return 1;
+        case 'n': // length
+            nloops = atoi(optarg);
+            break;
+        case 'q': // pcm path
+            pcmpath = optarg;
+            break;
+        case 'l': // length
+            len = atoi(optarg);
+            break;
+        case 'b': // log without path(no arguments)
+            nlg_log = NLG_SAMEPATH;
+            nlgfile = NULL;
+            nosound = 1;
+            break;
+        case 'r': // log with path
+            nlg_log = NLG_NORMAL;
+            nlgfile = optarg;
+            break;
+        case 'p': // no sound(no arguments)
+            nosound = 1;
+            break;
+        case 's': // rate
+            rate = atoi(optarg);
+            break;
+        case 'o': // output to wav file
+            wavfile = optarg;
+            break;
+        case 'w': // verbose mode(no arguments)
+            g_verbose = 1;
+            break;
+        case 'x': // view note mode(no arguments)
+            g_viewnote = 1;
+            break;
+        case 'h':
+        default:
+            usage();
+            return 1;
         }
     }
 
-#ifdef _MSC_VER
     for (int i = 0; i < argc; i++) {
         free(argv_windows_ANSI[i]);
     }
     free(argv_windows_ANSI);
+
+#else // _MSC_VER
+    while ((opt = getopt(argc, argv, "n:q:l:r:s:o:bpwhx")) != -1)
+    {
+        switch (opt)
+        {
+        case 'n': // length
+            nloops = atoi(optarg);
+            break;
+        case 'q': // pcm path
+            pcmpath = optarg;
+            break;
+        case 'l': // length
+            len = atoi(optarg);
+            break;
+        case 'b': // log without path(no arguments)
+            nlg_log = NLG_SAMEPATH;
+            nlgfile = NULL;
+            nosound = 1;
+            break;
+        case 'r': // log with path
+            nlg_log = NLG_NORMAL;
+            nlgfile = optarg;
+            break;
+        case 'p': // no sound(no arguments)
+            nosound = 1;
+            break;
+        case 's': // rate
+            rate = atoi(optarg);
+            break;
+        case 'o': // output to wav file
+            wavfile = optarg;
+            break;
+        case 'w': // verbose mode(no arguments)
+            g_verbose = 1;
+            break;
+        case 'x': // view note mode(no arguments)
+            g_viewnote = 1;
+            break;
+        case 'h':
+        default:
+            usage();
+            return 1;
+        }
+    }
 
 #endif // _MSC_VER
 
