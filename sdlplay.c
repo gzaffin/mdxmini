@@ -18,8 +18,8 @@
 
 #ifdef __GNUC__
 #include <SDL.h>
-#include <unistd.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <getopt.h>
 #include <locale.h>
 
@@ -1081,7 +1081,7 @@ int audio_main(int argc, char *argv[])
 }
 
 // disable SDLmain for win32 console app
-#ifdef _WIN32
+#ifdef _MSC_VER
 #undef main
 #endif
 

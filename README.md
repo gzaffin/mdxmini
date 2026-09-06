@@ -13,12 +13,15 @@ Folder `${HOME}/.mdxplay/` on Linux o.s. or `%USERPROFILE%\.mdxplay\` on Windows
 
 # How to build mdxplay player
 
-The following steps build build `mdxplay.exe` on a MSYS2/MinGW-w64 box, or `mdxplay` on a GNU/Linux box, using SDL2 library (sdl2-config) and make.
+The following steps build build `mdxplay.exe` on a MSYS2 UCRT64 environment, using SDL2 library (sdl2-config) and cmake !! MSYS2 UCRT64 one is not working !! and make.
 
 ```shell/bash shell
 $ git clone https://github.com/gzaffin/mdxmini.git
 $ cd mdxmini
-$ make mdxplay
+$ mkdir build
+$ cd build
+$ /c/Users/user/.espressif/tools/cmake/3.16.4/bin/cmake -DCMAKE_MAKE_PROGRAM=mingw32-make.exe -G "MinGW Makefiles" ..
+$ /c/Users/user/.espressif/tools/cmake/3.16.4/bin/cmake --build . --config Release --target mdxplay
 ```
 
 The following steps build `mdxplay` on a Ubuntu/Debian/GNU/Linux box, using SDL2 library (pck-config) and cmake.
