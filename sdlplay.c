@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <locale.h>
 
 #endif // __GNUC__
 
