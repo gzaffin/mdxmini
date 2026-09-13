@@ -15,22 +15,22 @@ ifeq ($(OS),Windows_NT)
     # We are on Windows (CMD, PowerShell, or MSYS)
     EXE_SFX := .exe
     # Check if 'uname' exists (means we are in MSYS/Bash)
-    UNAME := $(shell uname -s 2>----)
+    UNAME := $(shell uname -s 2>std_errors.txt)
     ifeq ($(findstring MINGW,$(UNAME)),MINGW)
         # MSYS2 MinGW / UCRT64 Environment
         RM = rm -rf
         MKDIR = mkdir -p
-	COPY = cp
+        COPY = cp
     else ifeq ($(findstring MSYS,$(UNAME)),MSYS)
         # MSYS Core Environment
         RM = rm -rf
         MKDIR = mkdir -p
-	COPY = cp
+        COPY = cp
     else
         # Pure Windows CMD or PowerShell (spawning CMD)
-        RM = del /Q /F
+        RM = cmd /c del /Q /F
         MKDIR = mkdir
-	COPY = cmd /c copy
+        COPY = cmd /c copy
     endif
 else
     # Pure Linux/macOS
@@ -154,6 +154,7 @@ $(LIB): $(LIB_OBJS)
 # Build the main executable
 $(TARGET): $(MDXPLAY_OBJS) $(LIB)
 	$(LD) $(LDFLAGS) -o $@ $(MDXPLAY_OBJS) $(LIB) $(LIBS) $(SDL_LIBS) $(ICONV_LIBS)
+	$(RM) std_errors.txt
 
 # Compile C source files
 $(OBJDIR)/%.o: %.c | $(OBJDIR)
