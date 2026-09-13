@@ -16,7 +16,7 @@
 #include "version.h"
 #include "mdx.h"
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
 #include <windows.h>
 #include <wchar.h>
 #include <stdbool.h>
@@ -47,7 +47,7 @@ __load_file(MDX_DATA* mdx, char* fnam)
   int len = 0;
   int result = 0;
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
     if (isLikelyUTF16(fnam)) {
         int utf16Len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, fnam, -1, NULL, 0);
         wchar_t *utf16 = (wchar_t *)malloc(utf16Len * sizeof(wchar_t));

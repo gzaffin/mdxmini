@@ -1,0 +1,215 @@
+#
+# Unified Makefile for mdxmini
+# Supports:
+#   - Windows with tcc + SDL2
+#   - Windows with MSYS2 UCRT64 (GCC + pkg-config + SDL2)
+#   - Linux with GCC + pkg-config + SDL2
+#
+
+# ============================================================================
+# Configuration Detection and Setup
+# ============================================================================
+
+# A reliable way to detect Windows vs MSYS/Linux:
+ifeq ($(OS),Windows_NT)
+    # We are on Windows (CMD, PowerShell, or MSYS)
+    EXE_SFX := .exe
+    # Check if 'uname' exists (means we are in MSYS/Bash)
+    UNAME := $(shell uname -s 2>----)
+    ifeq ($(findstring MINGW,$(UNAME)),MINGW)
+        # MSYS2 MinGW / UCRT64 Environment
+        RM = rm -rf
+        MKDIR = mkdir -p
+	COPY = cp
+    else ifeq ($(findstring MSYS,$(UNAME)),MSYS)
+        # MSYS Core Environment
+        RM = rm -rf
+        MKDIR = mkdir -p
+	COPY = cp
+    else
+        # Pure Windows CMD or PowerShell (spawning CMD)
+        RM = del /Q /F
+        MKDIR = mkdir
+	COPY = cmd /c copy
+    endif
+else
+    # Pure Linux/macOS
+    RM = rm -rf
+    COPY = copy /Y
+    MKDIR = mkdir -p
+    EXE_SFX :=
+endif
+
+# Debug mode
+DEBUG ?= 0
+ifeq ($(DEBUG),1)
+  MODE_SUFFIX := _debug
+  CFLAGS_OPT := -g -O0
+else
+  MODE_SUFFIX := _release
+  CFLAGS_OPT := -O3
+endif
+
+# Object directory
+OBJDIR ?= obj
+
+# ============================================================================
+# Compiler Configuration
+# ============================================================================
+
+ifeq ($(COMPILER),TCC)
+  # Tiny C Compiler (Windows native)
+  # Note: SDL2 support with tcc may require manual header/lib paths
+  # SDL_CFLAGS := -I/c/Users/gzaff/Devs/SDL2-2.32.10/include/SDL2
+  # SDL_LIBS := -L/c/Users/gzaff/Devs/SDL2-2.32.10/lib -lSDL2
+  SDL_CFLAGS := -IC:/Users/gzaff/Devs/SDL2-2.32.10/include/SDL2
+  SDL_LIBS := -L. -lSDL2
+  SDL_DEFS := SDL2.def
+  SDL_PATH := C:/Users/gzaff/Devs/SDL2-2.32.10/bin
+  SDL_PATH_COPY := C:\Users\gzaff\Devs\SDL2-2.32.10\bin
+  SDL_DINAMIC_LIBRARY := SDL2.dll
+  CC := tcc
+  LD := tcc
+  AR := tcc -ar
+  CFLAGS_COMMON := -I. -Isrc -DUSE_NLG
+  CFLAGS_WARN := -Wall
+  LFLAGS :=
+  LIBS := $(OBJDIR)/$(SDL_DEFS)
+
+else ifeq ($(COMPILER),GCC)
+  # GCC (Linux, MSYS2, MinGW)
+  CC := gcc
+  LD := gcc
+  AR := ar
+  CFLAGS_COMMON := -I. -Isrc -DUSE_NLG
+  CFLAGS_WARN := -Wall -Wextra
+  LFLAGS :=
+  LIBS := -lm
+
+  # SDL2 and iconv via pkg-config (Linux and MSYS2)
+  ifeq ($(shell which pkg-config 2>/dev/null),)
+    # pkg-config not available - manual configuration required
+    # SDL_CFLAGS :=
+    # SDL_LIBS :=
+    # ICONV_CFLAGS :=
+    # ICONV_LIBS :=
+  else
+    # pkg-config available
+    SDL_CFLAGS := $(shell pkg-config --cflags sdl2 2>/dev/null)
+    SDL_LIBS := $(shell pkg-config --libs sdl2 2>/dev/null)
+    # ICONV_CFLAGS := $(shell pkg-config --cflags iconv 2>/dev/null)
+    # ICONV_LIBS := $(shell pkg-config --libs iconv 2>/dev/null)
+  endif
+
+else
+  $(error Unsupported compiler: $(COMPILER). Use COMPILER=TCC or COMPILER=GCC)
+endif
+
+# Assemble final flags
+CFLAGS := $(CFLAGS_OPT) $(CFLAGS_COMMON) $(CFLAGS_WARN) $(SDL_CFLAGS) $(ICONV_CFLAGS) $(EXTRA_CFLAGS)
+LDFLAGS := $(LFLAGS) $(EXTRA_LDFLAGS)
+
+# ============================================================================
+# Build Targets and Files
+# ============================================================================
+
+TARGET := mdxplay$(MODE_SUFFIX)$(EXE_SFX)
+LIB := $(OBJDIR)/libmdxmini.a
+
+# mdxplay application files
+MDXPLAY_SRCS := nlg.c sdlplay.c
+MDXPLAY_OBJS := $(addprefix $(OBJDIR)/,$(MDXPLAY_SRCS:.c=.o))
+
+# mdxmini library files
+LIB_SRCS := mdxmini.c mdx2151.c mdxmml_ym2151.c pdxfile.c mdxfile.c pcm8.c ym2151.c sjis.c sjis_unicode.c utf8.c
+LIB_OBJS := $(addprefix $(OBJDIR)/,$(LIB_SRCS:.c=.o))
+
+SRCDIR := src
+VPATH := $(SRCDIR) .
+
+# ============================================================================
+# Rules
+# ============================================================================
+
+.PHONY: all clean help info
+
+ifeq ($(COMPILER),TCC)
+
+all: $(SDL_DEFS) $(OBJDIR) $(LIB) $(TARGET)
+
+$(SDL_DEFS): $(SDL_PATH)/$(SDL_DINAMIC_LIBRARY)
+	$(CC) -impdef $(SDL_PATH)/$(SDL_DINAMIC_LIBRARY) -o $(OBJDIR)/$@
+	$(COPY) $(SDL_PATH_COPY)\$(SDL_DINAMIC_LIBRARY) $(SDL_DINAMIC_LIBRARY)
+else
+all: $(OBJDIR) $(LIB) $(TARGET)
+endif
+
+$(OBJDIR):
+	@mkdir -p $(OBJDIR)
+
+# Build the static library
+$(LIB): $(LIB_OBJS)
+	$(AR) rcs $@ $^
+
+# Build the main executable
+$(TARGET): $(MDXPLAY_OBJS) $(LIB)
+	$(LD) $(LDFLAGS) -o $@ $(MDXPLAY_OBJS) $(LIB) $(LIBS) $(SDL_LIBS) $(ICONV_LIBS)
+
+# Compile C source files
+$(OBJDIR)/%.o: %.c | $(OBJDIR)
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+# Clean build artifacts
+ifeq ($(COMPILER),TCC)
+clean:
+	$(RM) $(OBJDIR)
+	$(RM) $(TARGET) $(SDL_DINAMIC_LIBRARY)
+else
+clean:
+	$(RM) $(OBJDIR)
+	$(RM) $(TARGET)
+endif
+
+# Show build information
+info:
+	@echo "=== mdxmini Build Configuration ==="
+	@echo "Compiler:      $(COMPILER)"
+	@echo "Debug mode:    $(DEBUG)"
+	@echo "Target:        $(TARGET)"
+	@echo "Object dir:    $(OBJDIR)"
+	@echo "CC:            $(CC)"
+	@echo "LD:            $(LD)"
+	@echo "AR:            $(AR)"
+	@echo "CFLAGS:        $(CFLAGS)"
+	@echo "LDFLAGS:       $(LDFLAGS)"
+	@echo "LIBS:          $(LIBS) $(SDL_LIBS) $(ICONV_LIBS)"
+	@echo "=================================="
+
+# Help
+help:
+	@echo "mdxmini Makefile - Universal Build System"
+	@echo ""
+	@echo "Usage:"
+	@echo "  make              - Build mdxplay executable and library"
+	@echo "  make clean        - Remove build artifacts"
+	@echo "  make info         - Show build configuration"
+	@echo "  make help         - Show this help message"
+	@echo ""
+	@echo "Configuration Variables:"
+	@echo "  COMPILER=TCC      - Use Tiny C Compiler (Windows native)"
+	@echo "  COMPILER=GCC      - Use GCC (Linux, MSYS2, MinGW)"
+	@echo "  DEBUG=1           - Build with debug symbols (-g -O0)"
+	@echo "  OBJDIR=<dir>      - Set object file directory (default: obj)"
+	@echo ""
+	@echo "Examples:"
+	@echo "  make                    # Default build"
+	@echo "  make COMPILER=GCC       # Force GCC compiler"
+	@echo "  make COMPILER=TCC       # Force tcc compiler"
+	@echo "  make DEBUG=0            # Release Buiild (-O3)"
+	@echo "  make COMPILER=GCC DEBUG=1 # GCC debug build"
+	@echo ""
+	@echo "Platform Support:"
+	@echo "  Windows + tcc:          make COMPILER=TCC"
+	@echo "  Windows + MSYS2 GCC:    make COMPILER=GCC (auto-detected)"
+	@echo "  Linux + GCC:            make COMPILER=GCC (auto-detected)"
+

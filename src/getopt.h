@@ -7,7 +7,7 @@
  * IMPLIED ARE HEREBY DISCLAIMED.  This includes but is not limited to 
  * warranties of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
 #ifndef __GETOPT_H__
  /*
  * Copyright (c) 2002 Todd C. Miller <Todd.Miller@courtesan.com>;
@@ -62,7 +62,10 @@
 #define __GETOPT_H__
 
 /* All the headers include this file. */
+#ifndef __TINYC__
 #include <crtdefs.h>
+
+#endif
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,9 +73,38 @@
 #include <stdio.h>
 #include <windows.h>
 
+/*
+ * POSIX requires the `getopt' API to be specified in `unistd.h';
+ * thus, `unistd.h' includes this header.  However, we do not want
+ * to expose the `getopt_long' or `getopt_long_only' APIs, when
+ * included in this manner.  Thus, close the standard __GETOPT_H__
+ * declarations block, and open an additional __GETOPT_LONG_H__
+ * specific block, only when *not* __UNISTD_H_SOURCED__, in which
+ * to declare the extended API.
+ */
+#endif /* !defined(__GETOPT_H__) */
+
+#if !defined(__UNISTD_H_SOURCED__) && !defined(__GETOPT_LONG_H__)
+#define __GETOPT_LONG_H__
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+struct option		/* specification for a long form option...	*/
+{
+  const char *name;		/* option name, without leading hyphens */
+  int         has_arg;		/* does it take an argument?		*/
+  int        *flag;		/* where to save its status, or NULL	*/
+  int         val;		/* its associated status value		*/
+};
+
+enum    		/* permitted values for its `has_arg' field...	*/
+{
+  no_argument = 0,      	/* option never takes an argument	*/
+  required_argument,		/* option always requires an argument	*/
+  optional_argument		/* option may take an argument		*/
+};
 
 #define	REPLACE_GETOPT		/* use this getopt as the system getopt(3) */
 
@@ -241,41 +273,6 @@ getopt(int nargc, char * const *nargv, const char *options)
 # define optreset  __mingw_optreset
 extern int optreset;
 #endif
-#ifdef __cplusplus
-}
-#endif
-/*
- * POSIX requires the `getopt' API to be specified in `unistd.h';
- * thus, `unistd.h' includes this header.  However, we do not want
- * to expose the `getopt_long' or `getopt_long_only' APIs, when
- * included in this manner.  Thus, close the standard __GETOPT_H__
- * declarations block, and open an additional __GETOPT_LONG_H__
- * specific block, only when *not* __UNISTD_H_SOURCED__, in which
- * to declare the extended API.
- */
-#endif /* !defined(__GETOPT_H__) */
-
-#if !defined(__UNISTD_H_SOURCED__) && !defined(__GETOPT_LONG_H__)
-#define __GETOPT_LONG_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct option		/* specification for a long form option...	*/
-{
-  const char *name;		/* option name, without leading hyphens */
-  int         has_arg;		/* does it take an argument?		*/
-  int        *flag;		/* where to save its status, or NULL	*/
-  int         val;		/* its associated status value		*/
-};
-
-enum    		/* permitted values for its `has_arg' field...	*/
-{
-  no_argument = 0,      	/* option never takes an argument	*/
-  required_argument,		/* option always requires an argument	*/
-  optional_argument		/* option may take an argument		*/
-};
 
 /*
  * parse_long_options --

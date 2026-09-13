@@ -1,4 +1,4 @@
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
 #include <windows.h>
 #include <wchar.h>
 #include <stdbool.h>
@@ -10,7 +10,7 @@
 #include <string.h>
 #include <signal.h>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
 #include <SDL.h>
 #include "getopt.h"
 
@@ -37,7 +37,7 @@
 
 #include "nlg.h"
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
 bool isLikelyUTF8(const wchar_t *wstr);
 bool isLikelyUTF16(const char *str);
 
@@ -100,7 +100,7 @@ static void audio_loop(t_mdxmini *data, int freq, int len, int nloops);
 static void audio_loop_file(t_mdxmini *data, const char *file, int freq , int len, int nloops);
 static void usage(void);
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
 int audio_main(int argc, wchar_t *argv[]);
 
 #else // _MSC_VER
@@ -288,7 +288,7 @@ static void audio_disp_title(t_mdxmini *data)
 
     if (!g_viewnote)
     {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
         UINT oldCodePage;
         oldCodePage = GetConsoleOutputCP();
         if (!SetConsoleOutputCP(65001)) {
@@ -317,7 +317,7 @@ static void audio_disp_title(t_mdxmini *data)
 //      char *p;
 //      int len = 0;
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
 //      p = strrchr ((char*)file, '\\');
 #else // _MSC_VER
 //      p = strrchr ((char*)file, '/');
@@ -648,7 +648,7 @@ static void usage(void)
 #define NLG_NORMAL 1
 #define NLG_SAMEPATH 2
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
     #define _PATH_SEP ";"
 #else
     #define _PATH_SEP ":"
@@ -659,7 +659,7 @@ static void usage(void)
 */
 
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
 int audio_main(int argc, wchar_t *argv[])
 
 #else // _MSC_VER
@@ -684,7 +684,7 @@ int audio_main(int argc, char *argv[])
     int nloops = 0;
     int len = -1;
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
     SetConsoleOutputCP(65001);	// Set Windows Console output to UTF-8
     SetConsoleCP(65001);	// Set input to UTF-8 as well
 
@@ -704,7 +704,7 @@ int audio_main(int argc, char *argv[])
         return 1;
     }
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
     char ** argv_windows_ANSI = (char **)malloc(sizeof(char *) * argc);
     for (int i = 0; i < argc; i++) {
 
@@ -838,7 +838,7 @@ int audio_main(int argc, char *argv[])
     {
         pcmpath_mem[0] = 0;
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
         char *home = getenv("USERPROFILE");
 
 #else // _MSC_VER
@@ -850,7 +850,7 @@ int audio_main(int argc, char *argv[])
             pcmpath = pcmpath_mem;
             strcpy(pcmpath, home);
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
             strcat(pcmpath,"\\");
 
 #else // _MSC_VER
@@ -859,7 +859,7 @@ int audio_main(int argc, char *argv[])
 #endif // _MSC_VER
             strcat(pcmpath, ".mdxplay");
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
             strcat(pcmpath,"\\");
 
 #else // _MSC_VER
@@ -873,7 +873,7 @@ int audio_main(int argc, char *argv[])
     for(;optind < argc; optind++)
     {
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
         // Convert to UTF-8
         int utf8Len = WideCharToMultiByte(CP_UTF8, 0, argv[optind], -1, NULL, 0, NULL, NULL);
         char *utf8 = (char *)malloc(utf8Len);
@@ -961,7 +961,7 @@ int audio_main(int argc, char *argv[])
             {
                 if ('\0' != pdx_lcl_iconv_name[0])
                 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
                     UINT oldCodePage;
                     oldCodePage = GetConsoleOutputCP();
                     if (!SetConsoleOutputCP(65001)) {
@@ -983,7 +983,7 @@ int audio_main(int argc, char *argv[])
             {
                 if ('\0' != pdx_lcl_iconv_name[0])
                 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
                     UINT oldCodePage;
                     oldCodePage = GetConsoleOutputCP();
                     if (!SetConsoleOutputCP(65001)) {
@@ -1010,7 +1010,7 @@ int audio_main(int argc, char *argv[])
             if ('\0' != pdx_lcl_name[0])
             {
                 sjis_to_utf8(pdx_lcl_name, (pdx_lcl_name_len + 1), pdx_lcl_iconv_name, 1024);
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
                 UINT oldCodePage;
                 oldCodePage = GetConsoleOutputCP();
                 if (!SetConsoleOutputCP(65001)) {
@@ -1068,7 +1068,7 @@ int audio_main(int argc, char *argv[])
         // close mdx
         mdx_close(&mini);
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
         free(utf8);
         free(ansi);
 
@@ -1081,11 +1081,11 @@ int audio_main(int argc, char *argv[])
 }
 
 // disable SDLmain for win32 console app
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
 #undef main
 #endif
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
 
 // Check if UTF-8 round-trip matches original UTF-16
 bool isLikelyUTF8(const wchar_t *wstr) {
@@ -1129,7 +1129,7 @@ bool isLikelyUTF16(const char *str) {
 // main
 */
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TINYC__)
 
 int wmain(int argc, wchar_t *argv[])
 {

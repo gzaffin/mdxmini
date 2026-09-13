@@ -21,7 +21,7 @@
   along with this program; if not, write to the Free Software
   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 */
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TCC__)
 #include <windows.h>
 #include <wchar.h>
 #include <stdbool.h>
@@ -561,7 +561,7 @@ static unsigned char* _load_pdx_data(char* name, long* out_length)
   FILE *fp;
   unsigned char *buf = NULL;
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TCC__)
     if (isLikelyUTF16(name)) {
         int utf16Len = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, name, -1, NULL, 0);
         wchar_t *utf16 = (wchar_t *)malloc(utf16Len * sizeof(wchar_t));
@@ -656,7 +656,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
                 if ('\0' != pdx_iconv_name[0])
                 {
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TCC__)
                     UINT oldCodePage;
                     oldCodePage = GetConsoleOutputCP();
                     if (!SetConsoleOutputCP(65001)) {
@@ -683,7 +683,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
                 if ('\0' != pdx_iconv_name[0])
                 {
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TCC__)
                     UINT oldCodePage;
                     oldCodePage = GetConsoleOutputCP();
                     if (!SetConsoleOutputCP(65001)) {
@@ -713,7 +713,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 
 #ifdef DEBUG
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TCC__)
   UINT oldCodePage;
   oldCodePage = GetConsoleOutputCP();
   if (!SetConsoleOutputCP(65001)) {
@@ -738,7 +738,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 
   buf[0] = '\0';
   strncpy( buf, mdxpath, PATH_BUF_SIZE-1 );
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TCC__)
   if ( (a=utf8_strrchr( buf, '\\' )) != NULL )
 
 #else // _MSC_VER
@@ -774,7 +774,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
   }
 #ifdef DEBUG
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TCC__)
   /*UINT oldCodePage;*/
   oldCodePage = GetConsoleOutputCP();
   if (!SetConsoleOutputCP(65001)) {
@@ -842,7 +842,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
       strcpy(buf, mdx->pdx_dir);
 
       int len = (int)strlen(buf);
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TCC__)
       if (len > 0 && buf[len - 1] != '\\')
       {
           strcat(buf, "\\");
@@ -877,7 +877,7 @@ static PDX_DATA* _get_pdx(MDX_DATA* mdx, char* mdxpath)
 
 #ifdef DEBUG
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) || defined(__TCC__)
       /*UINT oldCodePage;*/
       oldCodePage = GetConsoleOutputCP();
       if (!SetConsoleOutputCP(65001)) {
