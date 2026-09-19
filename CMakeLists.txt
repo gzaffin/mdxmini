@@ -71,7 +71,7 @@ endif()
 
 add_subdirectory(src)
 
-add_executable(mdxplay nlg.c sdlplay.c)
+add_executable(mdxplay sdlplay.c)
 
 if(MSVC)
 	if(USE_LIBICONV)

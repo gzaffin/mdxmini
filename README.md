@@ -13,9 +13,10 @@ Folder `${HOME}/.mdxplay/` on Linux o.s. or `%USERPROFILE%\.mdxplay\` on Windows
 
 # How to build mdxplay player
 
-The following steps build build `mdxplay.exe` on a MSYS2 UCRT64 environment, using SDL2 library (sdl2-config) and cmake !! MSYS2 UCRT64 one is not working !! and make.
+The following steps build `mdxplay.exe` on a MSYS2 UCRT64 environment, using SDL2 library (sdl2-config) and cmake and minGW make.
+NOTE - in a old Windows 10 machine MSYS2 UCRT64 cmake is not working, use another one.
 
-```shell/bash shell
+```UCRT64 shell
 $ git clone https://github.com/gzaffin/mdxmini.git
 $ cd mdxmini
 $ mkdir build
@@ -24,7 +25,7 @@ $ /c/Users/user/.espressif/tools/cmake/3.16.4/bin/cmake -DCMAKE_MAKE_PROGRAM=min
 $ /c/Users/user/.espressif/tools/cmake/3.16.4/bin/cmake --build . --config Release --target mdxplay
 ```
 
-The following steps build `mdxplay` on a Ubuntu/Debian/GNU/Linux box, using SDL2 library (pck-config) and cmake.
+The following steps build `mdxplay` on a Ubuntu/Debian/GNU/Linux box, using SDL2 library (pck-config) and cmake and GNU make.
 
 ```GNU/linux bash
 $ git clone https://github.com/gzaffin/mdxmini.git
@@ -35,27 +36,20 @@ $ cmake -D CMAKE_BUILD_TYPE=Release ..
 $ make mdxplay
 ```
 
-The following steps build `mdxplay.exe` on a MSYS2/MinGW-w64 Windows o.s. box with SDL2 and cmake.
+The following steps build `mdxplay` on a Ubuntu/Debian/GNU/Linux box, using SDL2 library (pck-config) and GNU make.
 
-```msys2/mingw bash
+```GNU/linux bash
 $ git clone https://github.com/gzaffin/mdxmini.git
 $ cd mdxmini
-$ mkdir build
-$ cd build
-$ cmake -G "MSYS Makefiles" -D CMAKE_BUILD_TYPE=Release ..
-$ make mdxplay
+$ make -f newMakefile COMPILER=GCC
 ```
 
-If MSYS Makefiles generator set with `-G "MSYS Makefiles"` cannot properly set make-utility,
-then add `-D CMAKE_MAKE_PROGRAM=<[PATH]/make-utility>` PATH of make-utility (see [1])
+The following steps build `mdxplay.exe` on a Windows o.s. box with Tiny C Compiler, SDL2 and GNU make.
 
-```windows command-line interface
+```windows command-line interface or PowerShell
 $ git clone https://github.com/gzaffin/mdxmini.git
 $ cd mdxmini
-$ mkdir build
-$ cd build
-$ cmake -G "MSYS Makefiles" -D CMAKE_MAKE_PROGRAM=mingw32-make ..
-$ cmake --build . --config Release --target mdxplay
+$ make -f newMakefile COMPILER=TCC
 ```
 
 The following steps build `mdxplay.exe` on a Windows o.s. box with MSVC, vcpkg, SDL2 installed with vcpkg.

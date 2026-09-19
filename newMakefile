@@ -117,11 +117,11 @@ TARGET := mdxplay$(MODE_SUFFIX)$(EXE_SFX)
 LIB := $(OBJDIR)/libmdxmini.a
 
 # mdxplay application files
-MDXPLAY_SRCS := nlg.c sdlplay.c
+MDXPLAY_SRCS := sdlplay.c
 MDXPLAY_OBJS := $(addprefix $(OBJDIR)/,$(MDXPLAY_SRCS:.c=.o))
 
 # mdxmini library files
-LIB_SRCS := mdxmini.c mdx2151.c mdxmml_ym2151.c pdxfile.c mdxfile.c pcm8.c ym2151.c sjis.c sjis_unicode.c utf8.c
+LIB_SRCS := mdxmini.c mdx2151.c mdxmml_ym2151.c pdxfile.c mdxfile.c pcm8.c ym2151.c nlg.c sjis.c sjis_unicode.c utf8.c
 LIB_OBJS := $(addprefix $(OBJDIR)/,$(LIB_SRCS:.c=.o))
 
 SRCDIR := src
